@@ -307,8 +307,8 @@ main {
 /* Game Grid */
 .game-grid {
     display: grid;
-    grid-template-columns: repeat(15, 40px);
-    grid-template-rows: repeat(13, 40px);
+    grid-template-columns: repeat(13, 40px);
+    grid-template-rows: repeat(10, 40px);
     gap: 2px;
     padding: var(--spacing-md);
     background: linear-gradient(145deg, 
