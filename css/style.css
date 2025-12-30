@@ -166,12 +166,31 @@ header {
 }
 
 .player {
+    position: relative;
+    z-index: 2;
+}
+
+.player::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background-image: url('../player.png');
     background-size: 120%;
     background-position: center;
-
+    background-repeat: no-repeat;
     transition: all 0.1s ease-in-out;
+    pointer-events: none;
+    z-index: 10;
+}
 
+/* Change player to ninja when on top of a bomb */
+.player.bomb::after {
+    background-image: url('../ninja-Photoroom.png');
+    background-size: 120%;
+    /* adjust size if needed */
 }
 
 footer {
@@ -209,12 +228,54 @@ footer {
     color: #8899a6;
 }
 
-.bomb {
+/* Bomb uses ::before to sit under player (::after) */
+.bomb::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background-image: url('../bomb-Photoroom.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    
+    border: none;
+    /* Remove floor border */
+    z-index: 1;
+}
+
+/* Ensure bomb class on parent doesn't conflict */
+
+.game-over {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 15px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 20px;
+    border-radius: 8px;
+
+}
+
+.blur {
+    filter: blur(5px);
+}
+
+#restart {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
 @keyframes pulse {

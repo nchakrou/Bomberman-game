@@ -1,5 +1,5 @@
 let grid = []
-let player = {
+const player = {
     x: 0,
     y: 0,
     lives: 3
@@ -33,14 +33,32 @@ let timer = setInterval(() => {
 }, 1000)
 
 function gameOver() {
+    player.lives = 0
+    const gameover = document.querySelector(".game-over")
+    const blur = document.getElementsByTagName("main")[0]
+    const p = document.getElementsByClassName("player")[0]
+    p.classList.remove("player")
+    blur.style.filter = "blur(5px)"
+    gameover.style.display = "flex"
+    const restart = document.getElementById("restart")
+    console.log(player.lives);
 
+    restart.addEventListener("click", () => {
+        location.reload()
+    })
 }
 
 function plantBomb() {
+
     grid[player.x][player.y].classList.add("bomb")
 }
 const bombe = trottel(plantBomb, 3000)
 document.addEventListener("keydown", (move) => {
+    console.log(player.lives);
+
+    if (player.lives <= 0) {
+        return
+    }
     if (move.key === ' ') {
         bombe(player.x, player.y)
         return
