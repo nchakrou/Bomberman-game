@@ -1,168 +1,226 @@
-/* Modern Ninja Bomberman Theme */
-
-:root {
-    --bg-color: #0f1020;
-    /* Deep Midnight Blue */
-    --container-bg: #161b33;
-    /* Slightly lighter blue for container */
-    --accent-color: #ff3366;
-    /* Neon Pink/Red for accents (Ninja vibe) */
-    --text-color: #f0f0f5;
-    /* Off-white for readability */
-    --primary-color: #00bcd4;
-    /* Cyan for tech/modern elements */
-    --grid-border: #232d4b;
-    /* Dark blue border for grid */
-    --floor-color: #2a3b55;
-    /* Slate blue floor tiles */
-    --ui-border: #444;
-    /* Subtle borders */
-    --danger-color: #ff4444;
-    /* For lives/danger */
-}
-
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap');
 
-body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Roboto', sans-serif;
+:root {
+    --bg-dark: #0a0e1a;
+    --bg-container: #12182d;
+    --accent-pink: #ff3366;
+    --accent-cyan: #00d4ff;
+    --text-white: #ffffff;
+    --text-gray: #8899a6;
+    --border-dark: #1e2942;
+    --danger-red: #ff4757;
+    --success-green: #2ed573;
+}
+
+* {
     margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg-dark);
+    color: var(--text-white);
+    font-family: 'Roboto', sans-serif;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    background-image: radial-gradient(#1f253d 1px, transparent 1px);
-    background-size: 20px 20px;
-    /* Subtle grid background pattern */
+    background-image:
+        radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(255, 51, 102, 0.03) 0%, transparent 50%);
 }
 
 .game {
-    background: linear-gradient(135deg, var(--container-bg), #0f1225);
-    border: 1px solid var(--grid-border);
-    padding: 30px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 188, 212, 0.2);
-    /* Glow effect */
-    border-radius: 12px;
-    width: fit-content;
+    background: var(--bg-container);
+    border: 1px solid var(--border-dark);
+    border-radius: 20px;
+    padding: 30px 40px;
+    box-shadow:
+        0 25px 80px rgba(0, 0, 0, 0.6),
+        0 0 60px rgba(0, 212, 255, 0.15),
+        0 0 100px rgba(255, 51, 102, 0.08);
     position: relative;
-    overflow: hidden;
+    animation: containerGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes containerGlow {
+    from {
+        box-shadow:
+            0 25px 80px rgba(0, 0, 0, 0.6),
+            0 0 60px rgba(0, 212, 255, 0.15),
+            0 0 100px rgba(255, 51, 102, 0.08);
+    }
+
+    to {
+        box-shadow:
+            0 25px 80px rgba(0, 0, 0, 0.6),
+            0 0 80px rgba(0, 212, 255, 0.2),
+            0 0 120px rgba(255, 51, 102, 0.12);
+    }
 }
 
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-dark);
 }
 
 .logo {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
 }
 
 .logo img {
     height: 60px;
-    filter: drop-shadow(0 0 8px var(--accent-color));
-    /* Glowing logo */
+    filter: drop-shadow(0 0 15px var(--accent-pink));
+    animation: logoFloat 2s ease-in-out infinite alternate;
+}
+
+@keyframes logoFloat {
+    from {
+        transform: translateY(0) rotate(-3deg);
+    }
+
+    to {
+        transform: translateY(-5px) rotate(3deg);
+    }
 }
 
 .logo h1 {
-    margin: 0;
     font-family: 'Orbitron', sans-serif;
-    /* Sci-fi/Modern font */
     font-size: 2.2rem;
-    color: var(--text-color);
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    background: linear-gradient(90deg, #fff, var(--primary-color));
+    font-weight: 700;
+    letter-spacing: 5px;
+    background: linear-gradient(90deg, var(--text-white), var(--accent-cyan), var(--accent-pink));
+    background-size: 200% 100%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: titleShine 3s ease-in-out infinite;
+    text-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+}
+
+@keyframes titleShine {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
 }
 
 .stat-box {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--ui-border);
-    padding: 1px 25px;
-    border-radius: 8px;
     display: flex;
-    gap: 25px;
-    font-size: 1.1rem;
-    font-weight: bold;
+    align-items: center;
+    gap: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-dark);
+    padding: 10px 24px;
+    border-radius: 10px;
     font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
 }
 
 .stat-box .icon {
-    margin-right: 8px;
-    filter: drop-shadow(0 0 2px currentColor);
+    margin-right: 6px;
 }
 
 #lives {
-    color: var(--danger-color);
+    color: var(--danger-red);
 }
 
 #score {
-    color: var(--primary-color);
+    color: var(--accent-cyan);
 }
 
 #time {
-    color: var(--accent-color);
+    color: var(--accent-pink);
 }
 
 .game-grid {
     display: grid;
-    grid-template-columns: repeat(13, 50px);
-    grid-template-rows: repeat(11, 50px);
-    gap: 2px;
-    /* Increased gap for better definition */
-    background-color: #000;
-    /* Dark background to show through gap */
-    border: 3px solid var(--primary-color);
-    box-shadow: 0 0 25px rgba(0, 188, 212, 0.4);
-    /* Stronger glow */
+    grid-template-columns: repeat(13, 60px);
+    grid-template-rows: repeat(11, 60px);
+    gap: 1px;
+    background: linear-gradient(135deg, #111, #1a1a2e);
+    border: 3px solid var(--accent-cyan);
+    border-radius: 12px;
+    padding: 4px;
     margin: 0 auto;
-    border-radius: 4px;
-    padding: 2px;
+    box-shadow:
+        0 0 40px rgba(0, 212, 255, 0.4),
+        0 0 80px rgba(0, 212, 255, 0.2),
+        inset 0 0 20px rgba(0, 0, 0, 0.8);
+    animation: gridGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes gridGlow {
+    from {
+        box-shadow:
+            0 0 40px rgba(0, 212, 255, 0.4),
+            0 0 80px rgba(0, 212, 255, 0.2),
+            inset 0 0 20px rgba(0, 0, 0, 0.8);
+    }
+
+    to {
+        box-shadow:
+            0 0 50px rgba(0, 212, 255, 0.5),
+            0 0 100px rgba(0, 212, 255, 0.25),
+            inset 0 0 25px rgba(0, 0, 0, 0.8);
+    }
 }
 
 .cell {
-    width: 50px;
-    height: 50px;
-    background-color: rgba(42, 59, 85, 0.8);
-    /* Semi-transparent floor */
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
+}
+
+.floor {
+    background-image: url('../floor.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 2px;
+}
+
+.wall {
+    background-image: url('../wall');
+    background-size: cover;
+    background-position: center;
+    border-radius: 3px;
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-    /* Inaner shadow for depth */
 }
 
-/* Cyber-Dojo Floor Pattern */
-.cell::before {
-    content: '';
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    right: 5px;
-    bottom: 5px;
-    border: 1px dashed rgba(255, 255, 255, 0.05);
-    /* Detailed inner marker */
-    pointer-events: none;
+.breakable {
+    background-image: url('../breakablewall.jpg');
+    background-size: cover;
+    background-position: center;
+    border-radius: 3px;
+    box-shadow:
+        inset 0 0 8px rgba(0, 0, 0, 0.4),
+        0 0 5px rgba(255, 165, 0, 0.2);
+    animation: breakableShimmer 2s ease-in-out infinite alternate;
 }
 
-/* Checkered pattern for floor to give depth */
-.cell:nth-child(even) {
-    background-color: rgba(30, 40, 60, 0.9);
-}
+@keyframes breakableShimmer {
+    from {
+        filter: brightness(1);
+    }
 
-.cell:hover {
-    background-color: rgba(0, 188, 212, 0.2);
-    /* Hover effect for interaction feeling */
-    transition: background-color 0.2s;
+    to {
+        filter: brightness(1.1);
+    }
 }
 
 .player {
@@ -173,118 +231,141 @@ header {
 .player::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: -5px;
     background-image: url('../player.png');
+    background-size: 110%;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 10;
+    pointer-events: none;
+    transition: transform 0.15s ease;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+    animation: playerIdle 1s ease-in-out infinite;
+}
+
+
+
+.player.bomb::after {
+    background-image: url('../ninja-Photoroom.png');
+    background-size: 110%;
+}
+
+
+.bomb::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    background-image: url('../bomb-Photoroom.png');
     background-size: 120%;
     background-position: center;
     background-repeat: no-repeat;
-    transition: all 0.1s ease-in-out;
-    pointer-events: none;
-    z-index: 10;
+    z-index: 1;
+    animation: pulse 0.4s ease-in-out infinite alternate;
 }
 
-/* Change player to ninja when on top of a bomb */
-.player.bomb::after {
-    background-image: url('../ninja-Photoroom.png');
-    background-size: 120%;
-    /* adjust size if needed */
+@keyframes pulse {
+    from {
+        transform: scale(1);
+        filter: drop-shadow(0 0 5px var(--danger-red));
+    }
+
+    to {
+        transform: scale(1.12);
+        filter: drop-shadow(0 0 20px var(--danger-red)) drop-shadow(0 0 40px rgba(255, 71, 87, 0.5));
+    }
 }
+
+
+/* Game Over - Simple & Clean */
+.game-over {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.9);
+    padding: 50px 70px;
+    border-radius: 20px;
+    text-align: center;
+    border: 2px solid var(--accent-pink);
+    box-shadow:
+        0 0 50px rgba(255, 51, 102, 0.5),
+        0 0 100px rgba(255, 51, 102, 0.2);
+}
+
+.game-over h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 3rem;
+    color: var(--accent-pink);
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 6px;
+    text-shadow:
+        0 0 20px var(--accent-pink),
+        0 0 40px rgba(255, 51, 102, 0.5);
+}
+
+#restart {
+    background: linear-gradient(135deg, var(--accent-cyan), #0099cc);
+    color: var(--text-white);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 16px 40px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 30px rgba(0, 212, 255, 0.4);
+}
+
+#restart:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0, 212, 255, 0.6);
+}
+
+
+
 
 footer {
-    margin-top: 25px;
+    margin-top: 20px;
     text-align: center;
-    color: #6c7a89;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.8rem;
 }
 
 .control {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
-.control p,
-.control kbd {
-    background: linear-gradient(to bottom, #2c3e50, #1a253a);
-    padding: 6px 12px;
-    border-radius: 4px;
-    border-bottom: 2px solid #000;
-    font-weight: bold;
-    color: var(--primary-color);
-    min-width: 20px;
+.control p {
+    background: linear-gradient(180deg, #2c3e50, #1a252f);
+    color: var(--accent-cyan);
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border-bottom: 3px solid #0d1318;
+    min-width: 45px;
     text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s ease;
+}
+
+.control p:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 212, 255, 0.3);
 }
 
 .control span {
+    color: var(--text-gray);
+    font-size: 0.85rem;
     text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 1px;
-    color: #8899a6;
-}
-
-/* Bomb uses ::before to sit under player (::after) */
-.bomb::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('../bomb-Photoroom.png');
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-    border: none;
-    /* Remove floor border */
-    z-index: 1;
-}
-
-/* Ensure bomb class on parent doesn't conflict */
-
-.game-over {
-    display: none;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    gap: 15px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 100;
-    background-color: rgba(0, 0, 0, 0.6);
-    padding: 20px;
-    border-radius: 8px;
-
-}
-
-.blur {
-    filter: blur(5px);
-}
-
-#restart {
-    background-color: var(--primary-color);
-    color: var(--text-color);
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-@keyframes pulse {
-    from {
-        transform: scale(1);
-    }
-
-    to {
-        transform: scale(1.1);
-        filter: drop-shadow(0 0 10px var(--danger-color));
-    }
+    letter-spacing: 1.5px;
 }

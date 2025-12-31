@@ -6,26 +6,34 @@ const player = {
 }
 map()
 function map() {
-    const gridd = document.getElementById("Grid")
+    const gridd = document.getElementById("Grid");
     for (let i = 0; i < 11; i++) {
         grid[i] = [];
         for (let j = 0; j < 13; j++) {
-            const div = document.createElement('div')
-            div.className = 'cell'
-            div.classList.add('floor')
-            if (i == 0 && j == 0) {
-                div.classList.add('player')
+            const div = document.createElement('div');
+            div.className = 'cell';
+            if (Math.random() < 0.1) {
+                div.classList.add('wall');
+            } else if (Math.random() < 0.3) {
+                div.classList.add('breakable');
+            } else {
+                div.classList.add('floor');
             }
-            grid[i].push(div)
-            gridd.append(div)
-        }
+            if (i == 0 && j == 0) {
+                div.classList.add('player');
+            }
 
+            grid[i].push(div);
+            gridd.append(div);
+        }
     }
 }
 
+
+
 let timer = setInterval(() => {
     const time = document.getElementById("time")
-    time.textContent = time.textContent - 10
+    time.textContent = time.textContent - 1
     if (time.textContent <= 0) {
         clearInterval(timer)
         gameOver()
@@ -39,7 +47,7 @@ function gameOver() {
     const p = document.getElementsByClassName("player")[0]
     p.classList.remove("player")
     blur.style.filter = "blur(5px)"
-    gameover.style.display = "flex"
+    gameover.style.display = "block"
     const restart = document.getElementById("restart")
     console.log(player.lives);
 
