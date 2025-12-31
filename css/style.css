@@ -179,14 +179,10 @@ header {
     }
 }
 
-.cell {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-}
+
 
 .floor {
+    position: relative;
     background-image: url('../floor.jpg');
     background-size: cover;
     background-position: center;
@@ -261,6 +257,26 @@ header {
     background-repeat: no-repeat;
     z-index: 1;
     animation: pulse 0.4s ease-in-out infinite alternate;
+}
+
+.enimies {
+    position: relative;
+    z-index: 2;
+}
+
+.enimies::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    background-image: url('../enimie.png');
+    background-size: 130%;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 10;
+    pointer-events: none;
+    transition: transform 0.15s ease;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+    animation: playerIdle 1s ease-in-out infinite;
 }
 
 @keyframes pulse {

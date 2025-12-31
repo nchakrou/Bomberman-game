@@ -1,9 +1,12 @@
 let grid = []
 const player = {
-    x: 0,
-    y: 0,
+    x: 1,
+    y: 1,
     lives: 3
 }
+const wall = "wall"
+const breakable = "breakable"
+const floor = "floor"
 map()
 function map() {
     const gridd = document.getElementById("Grid");
@@ -11,25 +14,43 @@ function map() {
         grid[i] = [];
         for (let j = 0; j < 13; j++) {
             const div = document.createElement('div');
-            div.className = 'cell';
-            if (Math.random() < 0.1) {
-                div.classList.add('wall');
-            } else if (Math.random() < 0.3) {
-                div.classList.add('breakable');
+            if (!players(i, j)) {
+
+                walls(gridd, div, i, j)
+
             } else {
-                div.classList.add('floor');
-            }
-            if (i == 0 && j == 0) {
-                div.classList.add('player');
+                div.classList.add(floor)
+                if (i == 1 && j == 1) {
+                    div.classList.add("player")
+                }
+                grid[i].push(div);
+                gridd.append(div);
             }
 
-            grid[i].push(div);
-            gridd.append(div);
         }
     }
 }
+function players(i, j) {
+    return (i == player.x && j == player.y) || (i == player.x + 1 && j == player.y) || (i == player.x && j == player.y + 1)
+}
+function walls(gridd, div, i, j) {
 
+    if (i === 0 || i === 10 || j === 0 || j === 12) {
+        div.classList.add(wall)
+    } else if (i % 2 === 0 && j % 2 === 0) {
+        div.classList.add(wall)
+    } else if (Math.random() < 0.4) {
+        div.classList.add(breakable)
+    } else if (Math.random() < 0.1) {
+        div.classList.add(floor)
+        div.classList.add("enimies")
+    } else {
+        div.classList.add(floor)
+    }
 
+    grid[i].push(div);
+    gridd.append(div);
+}
 
 let timer = setInterval(() => {
     const time = document.getElementById("time")
@@ -57,11 +78,11 @@ function gameOver() {
 }
 
 function plantBomb() {
-
     grid[player.x][player.y].classList.add("bomb")
 }
 const bombe = trottel(plantBomb, 3000)
 document.addEventListener("keydown", (move) => {
+
     console.log(player.lives);
 
     if (player.lives <= 0) {
@@ -78,9 +99,15 @@ document.addEventListener("keydown", (move) => {
     if (move.key === 'ArrowDown' || move.key === 's') x++;
     if (move.key === 'ArrowLeft' || move.key === 'a') y--;
     if (move.key === 'ArrowRight' || move.key === 'd') y++;
+    console.log(x, y);
+
     renderPlayer(x, y)
 })
 function renderPlayer(x, y) {
+
+    if (grid[x][y].classList.contains("wall") || grid[x][y].classList.contains("breakable")) {
+        return
+    }
     if ((x < 0 || y < 0) || (x >= grid.length || y >= grid[x].length)) {
         return
     }
