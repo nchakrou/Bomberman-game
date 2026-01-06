@@ -1,137 +1,186 @@
-let grid = []
+// ==== CONFIG ====
+const ROWS = 11;
+const COLS = 13;
+
+// ==== PLAYER ====
 const player = {
     x: 1,
     y: 1,
     lives: 3
-}
-const wall = "wall"
-const breakable = "breakable"
-const floor = "floor"
-map()
+};
+
+// ==== GRID ====
+let grid = [];
+
+// ==== TYPES ====
+const WALL = "wall";
+const BREAKABLE = "breakable";
+const FLOOR = "floor";
+
+// ==== INITIALISATION DE LA GRID ====
 function map() {
     const gridd = document.getElementById("Grid");
-    for (let i = 0; i < 11; i++) {
+    for (let i = 0; i < ROWS; i++) {
         grid[i] = [];
-        for (let j = 0; j < 13; j++) {
+        for (let j = 0; j < COLS; j++) {
             const div = document.createElement('div');
-            if (!players(i, j)) {
 
-                walls(gridd, div, i, j)
-
+            // Joueur
+            if (isPlayerStart(i, j)) {
+                div.classList.add(FLOOR, "player");
             } else {
-                div.classList.add(floor)
-                if (i == 1 && j == 1) {
-                    div.classList.add("player")
-                }
-                grid[i].push(div);
-                gridd.append(div);
+                generateCell(div, i, j);
             }
 
+            grid[i].push(div);
+            gridd.appendChild(div);
         }
     }
 }
-function players(i, j) {
-    return (i == player.x && j == player.y) || (i == player.x + 1 && j == player.y) || (i == player.x && j == player.y + 1)
-}
-function walls(gridd, div, i, j) {
 
-    if (i === 0 || i === 10 || j === 0 || j === 12) {
-        div.classList.add(wall)
+// ==== POSITION INITIALE DU JOUEUR ====
+function isPlayerStart(i, j) {
+    return (i === player.x && j === player.y);
+}
+
+// ==== CREATION DES CASES ====
+function generateCell(div, i, j) {
+    if (i === 0 || i === ROWS - 1 || j === 0 || j === COLS - 1) {
+        div.classList.add(WALL);
     } else if (i % 2 === 0 && j % 2 === 0) {
-        div.classList.add(wall)
+        div.classList.add(WALL);
     } else if (Math.random() < 0.4) {
-        div.classList.add(breakable)
-    } else if (Math.random() < 0.1) {
-        div.classList.add(floor)
-        div.classList.add("enimies")
+        div.classList.add(BREAKABLE);
     } else {
-        div.classList.add(floor)
+        div.classList.add(FLOOR);
+        if (Math.random() < 0.1) div.classList.add("enimies");
     }
-
-    grid[i].push(div);
-    gridd.append(div);
 }
 
+// ==== TIMER ====
 let timer = setInterval(() => {
-    const time = document.getElementById("time")
-    time.textContent = time.textContent - 1
-    if (time.textContent <= 0) {
-        clearInterval(timer)
-        gameOver()
+    const timeEl = document.getElementById("time");
+    timeEl.textContent = parseInt(timeEl.textContent) - 1;
+    if (timeEl.textContent <= 0) {
+        clearInterval(timer);
+        gameOver();
     }
-}, 1000)
+}, 1000);
 
+// ==== GAME OVER ====
 function gameOver() {
-    player.lives = 0
-    const gameover = document.querySelector(".game-over")
-    const blur = document.getElementsByTagName("main")[0]
-    const p = document.getElementsByClassName("player")[0]
-    p.classList.remove("player")
-    blur.style.filter = "blur(5px)"
-    gameover.style.display = "block"
-    const restart = document.getElementById("restart")
-    console.log(player.lives);
+    player.lives = 0;
+    const gameover = document.querySelector(".game-over");
+    const blur = document.getElementsByTagName("main")[0];
+    const p = document.getElementsByClassName("player")[0];
+    if (p) p.classList.remove("player");
+    blur.style.filter = "blur(5px)";
+    gameover.style.display = "block";
 
-    restart.addEventListener("click", () => {
-        location.reload()
-    })
+    const restart = document.getElementById("restart");
+    restart.addEventListener("click", () => location.reload());
 }
 
-function plantBomb() {
-    grid[player.x][player.y].classList.add("bomb")
+// ==== GESTION DES VIES ====
+function loseLife() {
+    player.lives--;
+    document.getElementById("lives").textContent = player.lives;
+    if (player.lives <= 0) gameOver();
 }
-const bombe = trottel(plantBomb, 3000)
-document.addEventListener("keydown", (move) => {
 
-    console.log(player.lives);
+// ==== MOUVEMENT DU JOUEUR ====
+document.addEventListener("keydown", (e) => {
+    if (player.lives <= 0) return;
 
-    if (player.lives <= 0) {
-        return
+    if (e.key === ' ') {
+        plantBomb();
+        return;
     }
-    if (move.key === ' ') {
-        bombe(player.x, player.y)
-        return
-    }
+
     let x = player.x;
     let y = player.y;
 
-    if (move.key === 'ArrowUp' || move.key === 'w') x--;
-    if (move.key === 'ArrowDown' || move.key === 's') x++;
-    if (move.key === 'ArrowLeft' || move.key === 'a') y--;
-    if (move.key === 'ArrowRight' || move.key === 'd') y++;
-    console.log(x, y);
+    if (e.key === 'ArrowUp' || e.key === 'w') x--;
+    if (e.key === 'ArrowDown' || e.key === 's') x++;
+    if (e.key === 'ArrowLeft' || e.key === 'a') y--;
+    if (e.key === 'ArrowRight' || e.key === 'd') y++;
 
-    renderPlayer(x, y)
-})
-function renderPlayer(x, y) {
+    movePlayer(x, y);
+});
 
-    if (grid[x][y].classList.contains("wall") || grid[x][y].classList.contains("breakable")) {
-        return
-    }
-    if ((x < 0 || y < 0) || (x >= grid.length || y >= grid[x].length)) {
-        return
-    }
+function movePlayer(x, y) {
+    if (x < 0 || y < 0 || x >= ROWS || y >= COLS) return;
 
-    console.log(x, y);
-    if (grid[x][y].classList.contains("bomb")) {
-        return
-    }
-    grid[player.x][player.y].classList.remove("player")
-    grid[x][y].classList.add("player")
-    player.x = x
-    player.y = y
+    const target = grid[x][y];
+    if (target.classList.contains(WALL) || target.classList.contains(BREAKABLE) || target.querySelector(".bomb")) return;
+
+    grid[player.x][player.y].classList.remove("player");
+    target.classList.add("player");
+
+    player.x = x;
+    player.y = y;
 }
-function trottel(fn, delay) {
-    let timer;
-    return function (playerX, playerY) {
-        if (!timer) {
-            fn(playerX, playerY)
-            timer = setTimeout(() => {
-                grid[playerX][playerY].classList.remove("bomb")
-                timer = null
-            }, delay)
 
-        }
+// ==== BOMBE ET EXPLOSION ====
+function plantBomb() {
+    const bombX = player.x;
+    const bombY = player.y;
+    const cell = grid[bombX][bombY];
+
+    if (cell.querySelector('.bomb')) return;
+
+    const bombDiv = document.createElement('div');
+    bombDiv.classList.add('bomb');
+    cell.appendChild(bombDiv);
+
+    // Explosion après 3 secondes avec coordonnées fixes
+    setTimeout(() => explodeBomb(bombX, bombY), 3000);
+}
+
+function explodeBomb(x, y) {
+    // Explosion centrale + croix
+    createFire(x, y);
+    createFire(x - 1, y);
+    createFire(x + 1, y);
+    createFire(x, y - 1);
+    createFire(x, y + 1);
+}
+
+function createFire(x, y) {
+    if (x < 0 || y < 0 || x >= ROWS || y >= COLS) return;
+
+    const cell = grid[x][y];
+
+    // Supprime bombe si présente
+    const bombDiv = cell.querySelector('.bomb');
+    if (bombDiv) bombDiv.remove();
+
+    // Mur solide bloque explosion
+    if (cell.classList.contains(WALL)) return;
+
+    // Mur cassable détruit
+    if (cell.classList.contains(BREAKABLE)) {
+        cell.classList.remove(BREAKABLE);
+        cell.classList.add(FLOOR);
     }
 
+    // Ennemi touché
+    if (cell.classList.contains("enimies")) {
+        cell.classList.remove("enimies");
+        let scoreEl = document.getElementById("score");
+        scoreEl.textContent = parseInt(scoreEl.textContent) + 10; // +10 points
+    }
+
+    // Crée le feu
+    const fireDiv = document.createElement('div');
+    fireDiv.classList.add('fire');
+    cell.appendChild(fireDiv);
+
+    setTimeout(() => fireDiv.remove(), 500);
+
+    // Vérifie si le joueur est touché
+    if (player.x === x && player.y === y) loseLife();
 }
+
+// ==== INITIALISATION ====
+map();

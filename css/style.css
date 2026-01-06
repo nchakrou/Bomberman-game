@@ -246,19 +246,6 @@ header {
     background-size: 110%;
 }
 
-
-.bomb::before {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    background-image: url('../bomb-Photoroom.png');
-    background-size: 120%;
-    background-position: center;
-    background-repeat: no-repeat;
-    z-index: 1;
-    animation: pulse 0.4s ease-in-out infinite alternate;
-}
-
 .enimies {
     position: relative;
     z-index: 2;
@@ -384,4 +371,39 @@ footer {
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 1.5px;
+}
+
+.bomb {
+    position: absolute;
+    inset: 0;
+    background-image: url('../bomb-Photoroom.png');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 2;
+}
+
+.fire {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(255, 165, 0, 0.8) 0%, rgba(255, 71, 87, 0.6) 60%, rgba(255, 0, 0, 0) 70%);
+    border-radius: 50%;
+    z-index: 3; 
+    pointer-events: none;
+    animation: firePulse 0.5s ease-out forwards;
+}
+
+@keyframes firePulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
 }
