@@ -51,7 +51,11 @@ function generateCell(div, i, j) {
         div.classList.add(WALL);
     } else if (i % 2 === 0 && j % 2 === 0) {
         div.classList.add(WALL);
-    } else if (Math.random() < 0.4) {
+    } else if (Math.random() < 0.4 && !(
+        (i === player.x && j === player.y + 1) ||
+        (i === player.x + 1 && j === player.y) ||
+        (i === player.x + 1 && j === player.y + 1)
+    )) {
         div.classList.add(BREAKABLE);
     } else {
         div.classList.add(FLOOR);
@@ -75,15 +79,14 @@ function spawnEnemy(x, y) {
             x,
             y,
             alive: true,
-            canHit: true   
         })
-      if (!grid[x][y].classList.contains("floor")) {
-            grid[x][y].classList.add("floor") 
+        if (!grid[x][y].classList.contains("floor")) {
+            grid[x][y].classList.add("floor")
         }
 
         grid[x][y].classList.add("enemy")
     }
-    }
+}
 
 
 
@@ -118,13 +121,13 @@ function loseLife() {
     document.getElementById("lives").textContent = player.lives;
     if (player.lives <= 0) gameOver();
 }
-
+const trothle = trottel(plantBomb, 2000)
 // ==== MOUVEMENT DU JOUEUR ====
 document.addEventListener("keydown", (e) => {
     if (player.lives <= 0) return;
 
     if (e.key === ' ') {
-        plantBomb();
+        trothle(player.x, player.y);
         return;
     }
 
@@ -165,7 +168,7 @@ function plantBomb() {
     cell.appendChild(bombDiv);
 
     // Explosion après 3 secondes avec coordonnées fixes
-    setTimeout(() => explodeBomb(bombX, bombY), 3000);
+    setTimeout(() => explodeBomb(bombX, bombY), 1750);
 }
 
 function explodeBomb(x, y) {
@@ -199,10 +202,10 @@ function createFire(x, y) {
     if (cell.classList.contains("enemy")) {
         cell.classList.remove("enemy");
         enemies.forEach(enemy => {
-        if (enemy.x === x && enemy.y === y) {
-            enemy.alive = false;
-        }
-    });
+            if (enemy.x === x && enemy.y === y) {
+                enemy.alive = false;
+            }
+        });
         let scoreEl = document.getElementById("score");
         scoreEl.textContent = parseInt(scoreEl.textContent) + 10; // +10 points
     }
@@ -216,6 +219,10 @@ function createFire(x, y) {
 
     // Vérifie si le joueur est touché
     if (player.x === x && player.y === y) loseLife();
+    grid[player.x][player.y].classList.remove("player")
+    grid[1][1].classList.add("player")
+    player.x = 1
+    player.y = 1
 }
 
 // ==== INITIALISATION ====
@@ -227,18 +234,19 @@ function spawnMultipleEnemies(count) {
         let x = Math.floor(Math.random() * ROWS);
         let y = Math.floor(Math.random() * COLS);
 
-        
+
 
         if (
-             grid[x][y].classList.contains("floor") &&
-            ! grid[x][y].classList.contains("player") &&
-            ! grid[x][y].classList.contains("enemy")
+            grid[x][y].classList.contains("floor") &&
+            !grid[x][y].classList.contains("player") &&
+            !grid[x][y].classList.contains("enemy")
         ) {
             spawnEnemy(x, y);
             spawned++;
         }
     }
 }
+
 spawnMultipleEnemies(5)
 function moveEnemy(enemy) {
     if (!enemy.alive) return
@@ -280,13 +288,14 @@ function moveEnemy(enemy) {
         grid[enemy.x][enemy.y].classList.add("enemy")
     }
 
-    if (enemy.x === player.x && enemy.y === player.y && enemy.canHit) {
-        player.lives--
-        enemy.canHit = false
+    if (enemy.x === player.x && enemy.y === player.y) {
 
-        setTimeout(() => {
-            enemy.canHit = true
-        }, 1000)
+        loseLife()
+        grid[player.x][player.y].classList.remove("player")
+        grid[1][1].classList.add("player")
+        player.x = 1
+        player.y = 1
+
 
         console.log("💀 Player hit! Lives:", player.lives)
 
@@ -298,3 +307,19 @@ function moveEnemy(enemy) {
 setInterval(() => {
     enemies.forEach(moveEnemy);
 }, 600);
+
+
+function trottel(fn, delay) {
+    let timer;
+    return function (playerX, playerY) {
+        if (!timer) {
+            fn(playerX, playerY)
+            timer = setTimeout(() => {
+                grid[playerX][playerY].classList.remove("bomb")
+                timer = null
+            }, delay)
+
+        }
+    }
+
+}
