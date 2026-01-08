@@ -16,6 +16,8 @@ let grid = [];
 const WALL = "wall";
 const BREAKABLE = "breakable";
 const FLOOR = "floor";
+let enemies = [];
+
 
 // ==== INITIALISATION DE LA GRID ====
 function map() {
@@ -53,9 +55,38 @@ function generateCell(div, i, j) {
         div.classList.add(BREAKABLE);
     } else {
         div.classList.add(FLOOR);
-        if (Math.random() < 0.1) div.classList.add("enimies");
     }
 }
+
+function spawnEnemy(x, y) {
+    if (
+        x < 0 || y < 0 ||
+        x >= grid.length ||
+        y >= grid[x].length
+    ) return
+
+    if (
+        !grid[x][y].classList.contains("wall") &&
+        !grid[x][y].classList.contains("breakable") &&
+        !grid[x][y].classList.contains("player") &&
+        !grid[x][y].classList.contains("enemy")
+    ) {
+        enemies.push({
+            x,
+            y,
+            alive: true,
+            canHit: true   
+        })
+      if (!grid[x][y].classList.contains("floor")) {
+            grid[x][y].classList.add("floor") 
+        }
+
+        grid[x][y].classList.add("enemy")
+    }
+    }
+
+
+
 
 // ==== TIMER ====
 let timer = setInterval(() => {
@@ -165,8 +196,13 @@ function createFire(x, y) {
     }
 
     // Ennemi touché
-    if (cell.classList.contains("enimies")) {
-        cell.classList.remove("enimies");
+    if (cell.classList.contains("enemy")) {
+        cell.classList.remove("enemy");
+        enemies.forEach(enemy => {
+        if (enemy.x === x && enemy.y === y) {
+            enemy.alive = false;
+        }
+    });
         let scoreEl = document.getElementById("score");
         scoreEl.textContent = parseInt(scoreEl.textContent) + 10; // +10 points
     }
@@ -184,3 +220,81 @@ function createFire(x, y) {
 
 // ==== INITIALISATION ====
 map();
+function spawnMultipleEnemies(count) {
+    let spawned = 0;
+
+    while (spawned < count) {
+        let x = Math.floor(Math.random() * ROWS);
+        let y = Math.floor(Math.random() * COLS);
+
+        
+
+        if (
+             grid[x][y].classList.contains("floor") &&
+            ! grid[x][y].classList.contains("player") &&
+            ! grid[x][y].classList.contains("enemy")
+        ) {
+            spawnEnemy(x, y);
+            spawned++;
+        }
+    }
+}
+spawnMultipleEnemies(5)
+function moveEnemy(enemy) {
+    if (!enemy.alive) return
+
+    let moves = []
+
+    const directions = [
+        { x: -1, y: 0 },
+        { x: 1, y: 0 },
+        { x: 0, y: -1 },
+        { x: 0, y: 1 }
+    ]
+
+    for (let dir of directions) {
+        let newX = enemy.x + dir.x
+        let newY = enemy.y + dir.y
+
+        if (
+            newX >= 0 &&
+            newY >= 0 &&
+            newX < grid.length &&
+            newY < grid[newX].length &&
+            !grid[newX][newY].classList.contains("wall") &&
+            !grid[newX][newY].classList.contains("breakable") &&
+            !grid[newX][newY].classList.contains("enemy")
+        ) {
+            moves.push({ x: newX, y: newY })
+        }
+    }
+
+    if (moves.length > 0) {
+        let move = moves[Math.floor(Math.random() * moves.length)]
+
+        grid[enemy.x][enemy.y].classList.remove("enemy")
+
+        enemy.x = move.x
+        enemy.y = move.y
+
+        grid[enemy.x][enemy.y].classList.add("enemy")
+    }
+
+    if (enemy.x === player.x && enemy.y === player.y && enemy.canHit) {
+        player.lives--
+        enemy.canHit = false
+
+        setTimeout(() => {
+            enemy.canHit = true
+        }, 1000)
+
+        console.log("💀 Player hit! Lives:", player.lives)
+
+        if (player.lives <= 0) {
+            gameOver()
+        }
+    }
+}
+setInterval(() => {
+    enemies.forEach(moveEnemy);
+}, 600);

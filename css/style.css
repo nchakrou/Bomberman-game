@@ -246,12 +246,12 @@ header {
     background-size: 110%;
 }
 
-.enimies {
+.enemy {
     position: relative;
     z-index: 2;
 }
 
-.enimies::after {
+.enemy::after {
     content: '';
     position: absolute;
     inset: -5px;
