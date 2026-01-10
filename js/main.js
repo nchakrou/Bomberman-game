@@ -1,41 +1,55 @@
 // ==== CONFIG ====
-const ROWS = 11;
-const COLS = 13;
+const ROWS = 13;
+const COLS = 15;
 
 // ==== PLAYER ====
 const player = {
     x: 1,
     y: 1,
-    lives: 3
-};
+    top: 40,
+    left: 40,
+    lives: 3,
 
+};
+const playerMovment = {
+    isMoving: false,
+    top: 40,
+    left: 40,
+    div: document.getElementById("player"),
+    index: 0,
+    delay: 5
+}
 // ==== GRID ====
+let divs = [];
 let grid = [];
 
 // ==== TYPES ====
-const WALL = "wall";
-const BREAKABLE = "breakable";
-const FLOOR = "floor";
+const FLOOR = 0;
+const WALL = 1;
+const BREAKABLE = 2;
+const PLAYER = 3;
 let enemies = [];
-
+const animation = [2, -30 , -65];
 
 // ==== INITIALISATION DE LA GRID ====
 function map() {
-    const gridd = document.getElementById("Grid");
+    const gameGrid = document.getElementById("Grid");
     for (let i = 0; i < ROWS; i++) {
         grid[i] = [];
+        divs[i] = [];
         for (let j = 0; j < COLS; j++) {
             const div = document.createElement('div');
 
-            // Joueur
             if (isPlayerStart(i, j)) {
-                div.classList.add(FLOOR, "player");
+                div.classList.add("floor");
+                grid[i].push(3);
             } else {
                 generateCell(div, i, j);
             }
 
-            grid[i].push(div);
-            gridd.appendChild(div);
+            divs[i].push(div);
+
+            gameGrid.append(div);
         }
     }
 }
@@ -44,21 +58,34 @@ function map() {
 function isPlayerStart(i, j) {
     return (i === player.x && j === player.y);
 }
-
+function isvalidPosition(x, y) {
+    return (
+        x >= 0 &&
+        y >= 0 &&
+        grid[x][y] !== WALL &&
+        grid[x][y] !== BREAKABLE &&
+        x < grid.length &&
+        y < grid[x].length
+    );
+}
 // ==== CREATION DES CASES ====
 function generateCell(div, i, j) {
     if (i === 0 || i === ROWS - 1 || j === 0 || j === COLS - 1) {
-        div.classList.add(WALL);
+        div.classList.add("wall");
+        grid[i].push(1);
     } else if (i % 2 === 0 && j % 2 === 0) {
-        div.classList.add(WALL);
+        div.classList.add("wall");
+        grid[i].push(1);
     } else if (Math.random() < 0.4 && !(
         (i === player.x && j === player.y + 1) ||
         (i === player.x + 1 && j === player.y) ||
         (i === player.x + 1 && j === player.y + 1)
     )) {
-        div.classList.add(BREAKABLE);
+        div.classList.add("breakable");
+        grid[i].push(2);
     } else {
-        div.classList.add(FLOOR);
+        div.classList.add("floor");
+        grid[i].push(0);
     }
 }
 
@@ -70,21 +97,21 @@ function spawnEnemy(x, y) {
     ) return
 
     if (
-        !grid[x][y].classList.contains("wall") &&
-        !grid[x][y].classList.contains("breakable") &&
-        !grid[x][y].classList.contains("player") &&
-        !grid[x][y].classList.contains("enemy")
+        grid[x][y] !== WALL &&
+        grid[x][y] !== BREAKABLE &&
+        grid[x][y] !== PLAYER &&
+        !divs[x][y].classList.contains("enemy")
     ) {
         enemies.push({
             x,
             y,
             alive: true,
         })
-        if (!grid[x][y].classList.contains("floor")) {
-            grid[x][y].classList.add("floor")
+        if (grid[x][y] !== FLOOR) {
+            grid[x][y] = FLOOR
         }
 
-        grid[x][y].classList.add("enemy")
+        divs[x][y].classList.add("enemy")
     }
 }
 
@@ -106,8 +133,6 @@ function gameOver() {
     player.lives = 0;
     const gameover = document.querySelector(".game-over");
     const blur = document.getElementsByTagName("main")[0];
-    const p = document.getElementsByClassName("player")[0];
-    if (p) p.classList.remove("player");
     blur.style.filter = "blur(5px)";
     gameover.style.display = "block";
 
@@ -119,60 +144,158 @@ function gameOver() {
 function loseLife() {
     player.lives--;
     document.getElementById("lives").textContent = player.lives;
-    if (player.lives <= 0) gameOver();
+    if (player.lives <= 0){
+         gameOver();
+    }else {
+        player.x = 1
+        player.y = 1
+        player.left = 40
+        player.top = 40
+        playerMovment.left = 40
+        playerMovment.top = 40
+        playerMovment.div.style.transform = `translateX(${player.left}px) translateY(${player.top}px)`;
+    }
+}
+let gamePaused = false;
+function pauseGame() {
+    if (!gamePaused){
+    const pauseOverlay = document.getElementById("pause-menu");
+    const blur = document.getElementsByTagName("main")[0];
+    blur.style.filter = "blur(5px)";
+    pauseOverlay.style.display = "block";
+    gamePaused = true;
+    }else{
+    console.log("hhh");
+    
+    const pauseOverlay = document.getElementById("pause-menu");
+    const blur = document.getElementsByTagName("main")[0];
+    blur.style.filter = "blur(0px)";
+    pauseOverlay.style.display = "none";
+    gamePaused = false;
+    }
+    const resumeButton = document.getElementById("resume");
 }
 const trothle = trottel(plantBomb, 2000)
 // ==== MOUVEMENT DU JOUEUR ====
 document.addEventListener("keydown", (e) => {
     if (player.lives <= 0) return;
-
+    if (e.key === 'Escape') {
+        pauseGame();
+        return;
+    }
     if (e.key === ' ') {
         trothle(player.x, player.y);
         return;
     }
 
-    let x = player.x;
-    let y = player.y;
 
-    if (e.key === 'ArrowUp' || e.key === 'w') x--;
-    if (e.key === 'ArrowDown' || e.key === 's') x++;
-    if (e.key === 'ArrowLeft' || e.key === 'a') y--;
-    if (e.key === 'ArrowRight' || e.key === 'd') y++;
+    if (!playerMovment.isMoving) {
 
-    movePlayer(x, y);
+        if (e.key === 'ArrowUp' || e.key === 'w') {
+            if (isvalidPosition(player.x - 1, player.y)){
+                player.x--;
+                playerMovment.top -= 40;
+                playerMovment.isMoving = true;
+            }
+        }
+        if (e.key === 'ArrowDown' || e.key === 's') {
+            if (isvalidPosition(player.x + 1, player.y)){
+            player.x++;
+            playerMovment.top += 40;
+            playerMovment.isMoving = true;
+            }
+        }
+        if (e.key === 'ArrowLeft' || e.key === 'a') {
+            if (isvalidPosition(player.x, player.y - 1)){
+            player.y--;
+            playerMovment.left -= 40;
+            playerMovment.isMoving = true;
+            }
+        }
+        if (e.key === 'ArrowRight' || e.key === 'd') {
+            if (isvalidPosition(player.x, player.y + 1)){
+            player.y++;
+            playerMovment.left += 40;
+            playerMovment.isMoving = true;
+            }
+        }
+
+    }
+
 });
 
-function movePlayer(x, y) {
-    if (x < 0 || y < 0 || x >= ROWS || y >= COLS) return;
+function movePlayer() {
+    if (player.top < playerMovment.top) {
+        playerMovment.div.style.backgroundPositionY = `0px`;
+        if (playerMovment.delay === 10) {
+            if (playerMovment.index >= animation.length) {
+                playerMovment.index = 0;
+            }
+        playerMovment.div.style.backgroundPositionX = `${animation[playerMovment.index]}px`;
+        playerMovment.index++;
+        playerMovment.delay = 0;
+        }
+        playerMovment.delay++;
+        playerMovment.div.style.transform = `translateX(${playerMovment.left}px) translateY(${player.top+=2}px)`;
 
-    const target = grid[x][y];
-    if (target.classList.contains(WALL) || target.classList.contains(BREAKABLE) || target.querySelector(".bomb")) return;
+    } else if (player.top > playerMovment.top) {
+        playerMovment.div.style.backgroundPositionY = `-120px`;
+        if (playerMovment.delay === 10) {
+            if (playerMovment.index >= animation.length) {
+                playerMovment.index = 0;
+            }
+        playerMovment.div.style.backgroundPositionX = `${animation[playerMovment.index]}px`;
+        playerMovment.index++;
+        playerMovment.delay = 0;
+        }
+        playerMovment.delay++;
+        playerMovment.div.style.transform = `translateX(${playerMovment.left}px) translateY(${player.top-=2}px)`;
+    } else if (player.left < playerMovment.left) {
+        playerMovment.div.style.backgroundPositionY = `-80px`;
+        if (playerMovment.delay === 10) {
+            if (playerMovment.index >= animation.length) {
+                playerMovment.index = 0;
+            }
+        playerMovment.div.style.backgroundPositionX = `${animation[playerMovment.index]}px`;
+        playerMovment.index++;
+        playerMovment.delay = 0;
+        }
+        playerMovment.delay++;
+        playerMovment.div.style.transform = `translateX(${player.left+=2}px) translateY(${player.top}px)`;
+    } else if (player.left > playerMovment.left) {
+        playerMovment.div.style.backgroundPositionY = `-40px`;
+        if (playerMovment.delay === 10) {
+            if (playerMovment.index >= animation.length) {
+                playerMovment.index = 0;
+            }
+        playerMovment.div.style.backgroundPositionX = `${animation[playerMovment.index]}px`;
+        playerMovment.index++;
+        playerMovment.delay = 0;
+        }
+        playerMovment.delay++;
+        playerMovment.div.style.transform = `translateX(${player.left-=2}px) translateY(${player.top}px)`;
+    } else {
+        playerMovment.isMoving = false;
+    }
 
-    grid[player.x][player.y].classList.remove("player");
-    target.classList.add("player");
 
-    player.x = x;
-    player.y = y;
 }
 
 // ==== BOMBE ET EXPLOSION ====
 function plantBomb() {
     const bombX = player.x;
     const bombY = player.y;
-    const cell = grid[bombX][bombY];
+    const cell = divs[bombX][bombY]; // Bomb is a visual element
 
-    if (cell.querySelector('.bomb')) return;
 
     const bombDiv = document.createElement('div');
     bombDiv.classList.add('bomb');
     cell.appendChild(bombDiv);
 
-    // Explosion après 3 secondes avec coordonnées fixes
     setTimeout(() => explodeBomb(bombX, bombY), 1750);
 }
 
 function explodeBomb(x, y) {
-    // Explosion centrale + croix
     createFire(x, y);
     createFire(x - 1, y);
     createFire(x + 1, y);
@@ -183,7 +306,7 @@ function explodeBomb(x, y) {
 function createFire(x, y) {
     if (x < 0 || y < 0 || x >= ROWS || y >= COLS) return;
 
-    const cell = grid[x][y];
+    const cell = divs[x][y];
 
     // Supprime bombe si présente
     const bombDiv = cell.querySelector('.bomb');
@@ -193,9 +316,10 @@ function createFire(x, y) {
     if (cell.classList.contains(WALL)) return;
 
     // Mur cassable détruit
-    if (cell.classList.contains(BREAKABLE)) {
-        cell.classList.remove(BREAKABLE);
-        cell.classList.add(FLOOR);
+    if (grid[x][y] === BREAKABLE) {
+        cell.classList.remove("breakable");
+        cell.classList.add("floor");
+        grid[x][y] = FLOOR
     }
 
     // Ennemi touché
@@ -217,12 +341,13 @@ function createFire(x, y) {
 
     setTimeout(() => fireDiv.remove(), 500);
 
-    // Vérifie si le joueur est touché
-    if (player.x === x && player.y === y) loseLife();
-    grid[player.x][player.y].classList.remove("player")
-    grid[1][1].classList.add("player")
+    if (player.x === x && player.y === y) {
+        loseLife();
+    grid[player.x][player.y] = FLOOR
+    grid[1][1] = PLAYER
     player.x = 1
     player.y = 1
+    }
 }
 
 // ==== INITIALISATION ====
@@ -237,9 +362,9 @@ function spawnMultipleEnemies(count) {
 
 
         if (
-            grid[x][y].classList.contains("floor") &&
-            !grid[x][y].classList.contains("player") &&
-            !grid[x][y].classList.contains("enemy")
+            grid[x][y] !== WALL &&
+            grid[x][y] !== BREAKABLE &&
+            !divs[x][y].classList.contains("enemy")
         ) {
             spawnEnemy(x, y);
             spawned++;
@@ -269,9 +394,9 @@ function moveEnemy(enemy) {
             newY >= 0 &&
             newX < grid.length &&
             newY < grid[newX].length &&
-            !grid[newX][newY].classList.contains("wall") &&
-            !grid[newX][newY].classList.contains("breakable") &&
-            !grid[newX][newY].classList.contains("enemy")
+            grid[newX][newY] !== WALL &&
+            grid[newX][newY] !== BREAKABLE &&
+            !divs[newX][newY].classList.contains("enemy")
         ) {
             moves.push({ x: newX, y: newY })
         }
@@ -280,19 +405,19 @@ function moveEnemy(enemy) {
     if (moves.length > 0) {
         let move = moves[Math.floor(Math.random() * moves.length)]
 
-        grid[enemy.x][enemy.y].classList.remove("enemy")
+        divs[enemy.x][enemy.y].classList.remove("enemy")
 
         enemy.x = move.x
         enemy.y = move.y
 
-        grid[enemy.x][enemy.y].classList.add("enemy")
+        divs[enemy.x][enemy.y].classList.add("enemy")
     }
 
     if (enemy.x === player.x && enemy.y === player.y) {
 
         loseLife()
-        grid[player.x][player.y].classList.remove("player")
-        grid[1][1].classList.add("player")
+        grid[player.x][player.y] = FLOOR
+        grid[1][1] = PLAYER
         player.x = 1
         player.y = 1
 
@@ -315,7 +440,7 @@ function trottel(fn, delay) {
         if (!timer) {
             fn(playerX, playerY)
             timer = setTimeout(() => {
-                grid[playerX][playerY].classList.remove("bomb")
+                divs[playerX][playerY].classList.remove("bomb")
                 timer = null
             }, delay)
 
@@ -323,3 +448,9 @@ function trottel(fn, delay) {
     }
 
 }
+function gameloop() {
+
+    movePlayer()
+    requestAnimationFrame(gameloop)
+}
+requestAnimationFrame(gameloop)

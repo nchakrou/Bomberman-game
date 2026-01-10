@@ -13,7 +13,16 @@
         <header>
             <div class="game-over">
                 <h1>Game Over</h1>
-                <button id="restart">Restart</button>
+                <button id="restart">Play Again</button>
+            </div>
+            <div class="game-over">
+                <h1>You Win!</h1>
+                <button id="restart-win">Play Again</button>
+            </div>
+            <div class="game-over" id ="pause-menu">
+                <h1>Game Paused</h1>
+                <button id="resume">Resume</button>
+                <button id="restart-pause">Restart</button>
             </div>
             <div class="logo">
                 <img src="royalty-free-bomb-stock-photography-cartoon-bomb-ceb113e92313574224c09bb19a8413fe.png">
@@ -32,6 +41,7 @@
         </header>
         <main>
             <div class="game-grid" id="Grid">
+                <div class = "player" id="player"></div>
             </div>
 
             <footer>
