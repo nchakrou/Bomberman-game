@@ -242,7 +242,10 @@ header {
 }
 
 .enemy {
-    position: relative;
+    position: absolute;
+     width: 40px;
+    height: 40px;
+    background-size: cover;
     z-index: 2;
 }
 

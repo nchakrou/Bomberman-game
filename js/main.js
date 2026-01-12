@@ -81,8 +81,9 @@ function generateCell(div, i, j) {
         (i === player.x + 1 && j === player.y) ||
         (i === player.x + 1 && j === player.y + 1)
     )) {
-        div.classList.add("breakable");
-        grid[i].push(2);
+        // div.classList.add("breakable");
+        div.classList.add("floor");
+        grid[i].push(0);
     } else {
         div.classList.add("floor");
         grid[i].push(0);
@@ -90,29 +91,10 @@ function generateCell(div, i, j) {
 }
 
 function spawnEnemy(x, y) {
-    if (
-        x < 0 || y < 0 ||
-        x >= grid.length ||
-        y >= grid[x].length
-    ) return
+    if (!isvalidPosition(x, y)) return
 
-    if (
-        grid[x][y] !== WALL &&
-        grid[x][y] !== BREAKABLE &&
-        grid[x][y] !== PLAYER &&
-        !divs[x][y].classList.contains("enemy")
-    ) {
-        enemies.push({
-            x,
-            y,
-            alive: true,
-        })
-        if (grid[x][y] !== FLOOR) {
-            grid[x][y] = FLOOR
-        }
-
-        divs[x][y].classList.add("enemy")
-    }
+    const enemy = createEnemy(x, y)
+    enemies.push(enemy)
 }
 
 
@@ -146,6 +128,7 @@ function loseLife() {
     document.getElementById("lives").textContent = player.lives;
     if (player.lives <= 0){
          gameOver();
+     
     }else {
         player.x = 1
         player.y = 1
@@ -371,68 +354,77 @@ function spawnMultipleEnemies(count) {
         }
     }
 }
+function createEnemy(x, y) {
+    const div = document.createElement("div")
+    div.classList.add("enemy")
+    document.getElementById("Grid").appendChild(div)
 
-spawnMultipleEnemies(5)
-function moveEnemy(enemy) {
-    if (!enemy.alive) return
+    div.style.transform = `translate(${y * 40}px, ${x * 40}px)`
 
-    let moves = []
+    return {
+        x,
+        y,
+        top: x * 40,
+        left: y * 40,
+        targetTop: x * 40,
+        targetLeft: y * 40,
+        isMoving: false,
+        div,
+        alive: true,
+        cooldown: 0
 
-    const directions = [
-        { x: -1, y: 0 },
-        { x: 1, y: 0 },
-        { x: 0, y: -1 },
-        { x: 0, y: 1 }
-    ]
-
-    for (let dir of directions) {
-        let newX = enemy.x + dir.x
-        let newY = enemy.y + dir.y
-
-        if (
-            newX >= 0 &&
-            newY >= 0 &&
-            newX < grid.length &&
-            newY < grid[newX].length &&
-            grid[newX][newY] !== WALL &&
-            grid[newX][newY] !== BREAKABLE &&
-            !divs[newX][newY].classList.contains("enemy")
-        ) {
-            moves.push({ x: newX, y: newY })
-        }
-    }
-
-    if (moves.length > 0) {
-        let move = moves[Math.floor(Math.random() * moves.length)]
-
-        divs[enemy.x][enemy.y].classList.remove("enemy")
-
-        enemy.x = move.x
-        enemy.y = move.y
-
-        divs[enemy.x][enemy.y].classList.add("enemy")
-    }
-
-    if (enemy.x === player.x && enemy.y === player.y) {
-
-        loseLife()
-        grid[player.x][player.y] = FLOOR
-        grid[1][1] = PLAYER
-        player.x = 1
-        player.y = 1
-
-
-        console.log("💀 Player hit! Lives:", player.lives)
-
-        if (player.lives <= 0) {
-            gameOver()
-        }
     }
 }
-setInterval(() => {
-    enemies.forEach(moveEnemy);
-}, 600);
 
+
+spawnMultipleEnemies(5)
+function updateEnemy(enemy) {
+    if (!enemy.alive) return
+
+    if (enemy.cooldown > 0) {
+        enemy.cooldown--
+    }
+
+    if (!enemy.isMoving && enemy.cooldown === 0) {
+        const directions = [
+            { dx: -1, dy: 0 },
+            { dx: 1, dy: 0 },
+            { dx: 0, dy: -1 },
+            { dx: 0, dy: 1 }
+        ]
+
+        let valid = directions.filter(d =>
+            isvalidPosition(enemy.x + d.dx, enemy.y + d.dy)
+        )
+
+        if (valid.length === 0) return
+
+        const dir = valid[Math.floor(Math.random() * valid.length)]
+
+        enemy.x += dir.dx
+        enemy.y += dir.dy
+
+        enemy.targetTop = enemy.x * 40
+        enemy.targetLeft = enemy.y * 40
+
+        enemy.isMoving = true
+        enemy.cooldown = 20 
+    }
+
+    if (enemy.top < enemy.targetTop) enemy.top += 2
+    else if (enemy.top > enemy.targetTop) enemy.top -= 2
+    else if (enemy.left < enemy.targetLeft) enemy.left += 2
+    else if (enemy.left > enemy.targetLeft) enemy.left -= 2
+    else enemy.isMoving = false
+
+    enemy.div.style.transform =
+        `translate(${enemy.left}px, ${enemy.top}px)`
+
+    if (enemy.x === player.x && enemy.y === player.y && enemy.cooldown ===0) {
+        loseLife()
+        enemy.cooldown =30
+    }
+}
 
 function trottel(fn, delay) {
     let timer;
@@ -451,6 +443,7 @@ function trottel(fn, delay) {
 function gameloop() {
 
     movePlayer()
+    enemies.forEach(enemy => updateEnemy(enemy))
     requestAnimationFrame(gameloop)
 }
 requestAnimationFrame(gameloop)
