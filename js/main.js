@@ -81,9 +81,8 @@ function generateCell(div, i, j) {
         (i === player.x + 1 && j === player.y) ||
         (i === player.x + 1 && j === player.y + 1)
     )) {
-        // div.classList.add("breakable");
-        div.classList.add("floor");
-        grid[i].push(0);
+        div.classList.add("breakable");
+        grid[i].push(2);
     } else {
         div.classList.add("floor");
         grid[i].push(0);
@@ -408,7 +407,7 @@ function updateEnemy(enemy) {
         enemy.targetLeft = enemy.y * 40
 
         enemy.isMoving = true
-        enemy.cooldown = 20 
+        enemy.cooldown = 40
     }
 
     if (enemy.top < enemy.targetTop) enemy.top += 2
