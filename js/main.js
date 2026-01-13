@@ -9,6 +9,8 @@ const player = {
     top: 40,
     left: 40,
     lives: 3,
+    canHit :true,
+    invisible : false
 
 };
 const playerMovment = {
@@ -63,15 +65,22 @@ function map() {
 function isPlayerStart(i, j) {
     return (i === player.x && j === player.y);
 }
-function isvalidPosition(x, y) {
+function isNearPlayer(x, y) {
+    return Math.abs(x - player.x) <= 2 &&
+           Math.abs(y - player.y) <= 2
+}
+
+function isvalidPosition(x, y, forEnemy = false) {
+    const nearPlayerCheck = forEnemy ? !isNearPlayer(x, y) : true;
     return (
         x >= 0 &&
         y >= 0 &&
+        x < grid.length &&
+        y < grid[x].length &&
         grid[x][y] !== WALL &&
         grid[x][y] !== BREAKABLE &&
-        x < grid.length &&
-        y < grid[x].length
-    );
+        nearPlayerCheck
+    )
 }
 // ==== CREATION DES CASES ====
 function generateCell(div, i, j) {
@@ -128,21 +137,37 @@ function gameOver() {
 
 // ==== GESTION DES VIES ====
 function loseLife() {
-    player.lives--;
-    document.getElementById("lives").textContent = player.lives;
-    if (player.lives <= 0) {
-        gameOver();
+    if (!player.canHit) return   
 
-    } else {
-        player.x = 1
-        player.y = 1
-        player.left = 40
-        player.top = 40
-        playerMovment.left = 40
-        playerMovment.top = 40
-        playerMovment.div.style.transform = `translateX(${player.left}px) translateY(${player.top}px)`;
+    player.lives--
+    document.getElementById("lives").textContent = player.lives;
+
+    player.canHit = false
+    player.invincible = true
+
+    playerMovment.div.classList.add("invincible")
+
+    if (player.lives <= 0){
+        gameOver()
+        return
     }
+
+    player.x = 1
+    player.y = 1
+    player.left = 40
+    player.top = 40
+    playerMovment.left = 40
+    playerMovment.top = 40
+    playerMovment.div.style.transform =
+        `translateX(${player.left}px) translateY(${player.top}px)`
+
+    setTimeout(() => {
+        player.canHit = true
+        player.invisible = false
+        playerMovment.div.classList.remove("invincible")
+    }, 3000)
 }
+
 let gamePaused = false;
 function pauseGame() {
     if (!gamePaused) {
@@ -296,7 +321,7 @@ function createFire(x, y) {
     if (cell.classList.contains("enemy")) {
         cell.classList.remove("enemy");
         enemies.forEach(enemy => {
-            if (enemy.x === x && enemy.y === y) {
+            if (enemy.x === x && enemy.y === y && player.canHit) {
                 enemy.alive = false;
             }
         });
@@ -328,14 +353,13 @@ function spawnMultipleEnemies(count) {
     while (spawned < count) {
         let x = Math.floor(Math.random() * ROWS);
         let y = Math.floor(Math.random() * COLS);
-        if (
-            grid[x][y] !== WALL &&
-            grid[x][y] !== BREAKABLE &&
-            !divs[x][y].classList.contains("enemy")
-        ) {
-            spawnEnemy(x, y);
-            spawned++;
-        }
+    if (
+    isvalidPosition(x, y, true) && 
+    !divs[x][y].classList.contains("enemy")
+) {
+    spawnEnemy(x, y);
+    spawned++;
+}
     }
 }
 function createEnemy(x, y) {
@@ -387,16 +411,16 @@ function updateEnemy(enemy) {
         enemy.isMoving = true
     }
 
-    if (enemy.top < enemy.targetTop) enemy.top += 2
-    else if (enemy.top > enemy.targetTop) enemy.top -= 2
-    else if (enemy.left < enemy.targetLeft) enemy.left += 2
-    else if (enemy.left > enemy.targetLeft) enemy.left -= 2
+    if (enemy.top < enemy.targetTop) enemy.top += 1
+    else if (enemy.top > enemy.targetTop) enemy.top -= 1
+    else if (enemy.left < enemy.targetLeft) enemy.left += 1
+    else if (enemy.left > enemy.targetLeft) enemy.left -= 1
     else enemy.isMoving = false
 
     enemy.div.style.transform =
         `translate(${enemy.left}px, ${enemy.top}px)`
 
-    if (enemy.x === player.x && enemy.y === player.y ) {
+    if (enemy.x === player.x && enemy.y === player.y && player.canHit) {
         loseLife()
     }
 }
