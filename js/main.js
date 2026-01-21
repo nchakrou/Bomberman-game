@@ -1,18 +1,17 @@
-// ==== CONFIG ====
+// length
 const ROWS = 13;
 const COLS = 15;
 
-// ==== PLAYER ====
+
 const player = {
     x: 1,
     y: 1,
     top: 40,
     left: 40,
     lives: 3,
-    canHit :true,
-    invisible : false
-
+    canHit: true,
 };
+
 const playerMovment = {
     isMoving: false,
     top: 40,
@@ -20,7 +19,8 @@ const playerMovment = {
     div: document.getElementById("player"),
     index: 0,
     delay: 5
-}
+};
+
 const keys = {
     up: false,
     down: false,
@@ -28,19 +28,21 @@ const keys = {
     right: false
 };
 
-// ==== GRID ====
+// grid
 let divs = [];
 let grid = [];
 
-// ==== TYPES ====
+// types of squares
 const FLOOR = 0;
 const WALL = 1;
 const BREAKABLE = 2;
 const PLAYER = 3;
 let enemies = [];
-const animation = [2, -30, -65];
 
-// ==== INITIALISATION DE LA GRID ====
+// animations things
+const animation = [2, -30, -65];
+const enemyanimation = [0, -40, -80]; 
+
 function map() {
     const gameGrid = document.getElementById("Grid");
     for (let i = 0; i < ROWS; i++) {
@@ -61,17 +63,12 @@ function map() {
     }
 }
 
-// ==== POSITION INITIALE DU JOUEUR ====
+// checkpoint
 function isPlayerStart(i, j) {
     return (i === player.x && j === player.y);
 }
-function isNearPlayer(x, y) {
-    return Math.abs(x - player.x) <= 2 &&
-           Math.abs(y - player.y) <= 2
-}
 
 function isvalidPosition(x, y, forEnemy = false) {
-    const nearPlayerCheck = forEnemy ? !isNearPlayer(x, y) : true;
     return (
         x >= 0 &&
         y >= 0 &&
@@ -79,10 +76,11 @@ function isvalidPosition(x, y, forEnemy = false) {
         y < grid[x].length &&
         grid[x][y] !== WALL &&
         grid[x][y] !== BREAKABLE &&
-        nearPlayerCheck
-    )
+        (!forEnemy || Math.abs(x - player.x) > 2 || Math.abs(y - player.y) > 2) 
+    );
 }
-// ==== CREATION DES CASES ====
+
+// randomly creation of wall and floor
 function generateCell(div, i, j) {
     if (i === 0 || i === ROWS - 1 || j === 0 || j === COLS - 1) {
         div.classList.add("wall");
@@ -103,17 +101,139 @@ function generateCell(div, i, j) {
     }
 }
 
-function spawnEnemy(x, y) {
-    if (!isvalidPosition(x, y)) return
 
-    const enemy = createEnemy(x, y)
-    enemies.push(enemy)
+function createEnemy(x, y) {
+    const div = document.createElement("div");
+    div.classList.add("enemy");
+    document.getElementById("Grid").appendChild(div);
+    div.style.transform = `translate(${y * 40}px, ${x * 40}px)`;
+    
+    return {
+        x,
+        y,
+        top: x * 40,
+        left: y * 40,
+        targetTop: x * 40,
+        targetLeft: y * 40,
+        isMoving: false,
+        div,
+        alive: true,
+        direction: 'down',
+        animIndex: 0,
+        animDelay: 0,
+    };
 }
 
+function spawnEnemy(x, y) {
+    if (!isvalidPosition(x, y)) return;
+    const enemy = createEnemy(x, y);
+    enemies.push(enemy);
+}
 
+function spawnMultipleEnemies(count) {
+    let spawned = 0;
 
+    while (spawned < count) {
+        let x = Math.floor(Math.random() * ROWS);
+        let y = Math.floor(Math.random() * COLS);
+        
+        if (isvalidPosition(x, y, true) && !divs[x][y].classList.contains("enemy")) {
+            spawnEnemy(x, y);
+            spawned++;
+        }
+    }
+}
 
-// ==== TIMER ====
+function enemyAnimation(enemy) {
+    if (enemy.animDelay >= 8) {
+        if (enemy.animIndex >= enemyanimation.length) {
+            enemy.animIndex = 0;
+        }
+        enemy.div.style.backgroundPositionX = `${enemyanimation[enemy.animIndex]}px`;
+        
+        let posY = 0;
+        switch (enemy.direction) {
+            case 'down':
+                posY = 0;
+                break;
+            case 'left':
+                posY = -40;
+                break;
+            case 'right':
+                posY = -80;
+                break;
+            case 'up':
+                posY = -120;
+                break;
+        }
+        enemy.div.style.backgroundPositionY = `${posY}px`;
+        
+        enemy.animIndex++;
+        enemy.animDelay = 0;
+    }
+    enemy.animDelay++;
+}
+
+// the new enemie
+function updateEnemy(enemy) {
+    if (!enemy.alive) {
+        enemy.div.remove();
+        return;
+    }
+
+    if (!enemy.isMoving) {
+        const directions = [
+            { dx: -1, dy: 0, dir: 'up' },
+            { dx: 1, dy: 0, dir: 'down' },
+            { dx: 0, dy: -1, dir: 'left' },
+            { dx: 0, dy: 1, dir: 'right' }
+        ];
+
+        let valid = directions.filter(d =>
+            isvalidPosition(enemy.x + d.dx, enemy.y + d.dy)
+        );
+
+        if (valid.length === 0) return;
+
+        const dir = valid[Math.floor(Math.random() * valid.length)];
+
+        enemy.x += dir.dx;
+        enemy.y += dir.dy;
+        enemy.direction = dir.dir;
+
+        enemy.targetTop = enemy.x * 40;
+        enemy.targetLeft = enemy.y * 40;
+
+        enemy.isMoving = true;
+    }
+
+    if (enemy.top < enemy.targetTop) {
+        enemy.top += 1;
+        enemy.direction = 'down';
+    } else if (enemy.top > enemy.targetTop) {
+        enemy.top -= 1;
+        enemy.direction = 'up';
+    } else if (enemy.left < enemy.targetLeft) {
+        enemy.left += 1;
+        enemy.direction = 'right';
+    } else if (enemy.left > enemy.targetLeft) {
+        enemy.left -= 1;
+        enemy.direction = 'left';
+    } else {
+        enemy.isMoving = false;
+    }
+
+    if (enemy.isMoving) {
+        enemyAnimation(enemy);
+    }
+
+    enemy.div.style.transform = `translate(${enemy.left}px, ${enemy.top}px)`;
+
+    if (enemy.x === player.x && enemy.y === player.y && player.canHit) {
+        loseLife();
+    }
+}
+
 let timer = setInterval(() => {
     const timeEl = document.getElementById("time");
     timeEl.textContent = parseInt(timeEl.textContent) - 1;
@@ -123,7 +243,6 @@ let timer = setInterval(() => {
     }
 }, 1000);
 
-// ==== GAME OVER ====
 function gameOver() {
     player.lives = 0;
     const gameover = document.querySelector(".game-over");
@@ -135,40 +254,38 @@ function gameOver() {
     restart.addEventListener("click", () => location.reload());
 }
 
-// ==== GESTION DES VIES ====
 function loseLife() {
-    if (!player.canHit) return   
+    if (!player.canHit) return;
 
-    player.lives--
+    player.lives--;
     document.getElementById("lives").textContent = player.lives;
 
-    player.canHit = false
-    player.invincible = true
+    player.canHit = false;
 
-    playerMovment.div.classList.add("invincible")
+    playerMovment.div.classList.add("invincible");
 
-    if (player.lives <= 0){
-        gameOver()
-        return
+    if (player.lives <= 0) {
+        gameOver();
+        return;
     }
 
-    player.x = 1
-    player.y = 1
-    player.left = 40
-    player.top = 40
-    playerMovment.left = 40
-    playerMovment.top = 40
+    player.x = 1;
+    player.y = 1;
+    player.left = 40;
+    player.top = 40;
+    playerMovment.left = 40;
+    playerMovment.top = 40;
     playerMovment.div.style.transform =
-        `translateX(${player.left}px) translateY(${player.top}px)`
+        `translateX(${player.left}px) translateY(${player.top}px)`;
 
     setTimeout(() => {
-        player.canHit = true
-        player.invisible = false
-        playerMovment.div.classList.remove("invincible")
-    }, 3000)
+        player.canHit = true;
+        playerMovment.div.classList.remove("invincible");
+    }, 3000);
 }
 
 let gamePaused = false;
+
 function pauseGame() {
     if (!gamePaused) {
         const pauseOverlay = document.getElementById("pause-menu");
@@ -177,17 +294,16 @@ function pauseGame() {
         pauseOverlay.style.display = "block";
         gamePaused = true;
     } else {
-        console.log("hhh");
-
         const pauseOverlay = document.getElementById("pause-menu");
         const blur = document.getElementsByTagName("main")[0];
         blur.style.filter = "blur(0px)";
         pauseOverlay.style.display = "none";
         gamePaused = false;
     }
-    const resumeButton = document.getElementById("resume");
 }
-const trothle = trottel(plantBomb, 2000)
+
+const trothle = trottel(plantBomb, 2000);
+
 function handleinput() {
     if (playerMovment.isMoving) return;
 
@@ -217,6 +333,7 @@ function handleinput() {
         }
     }
 }
+
 document.addEventListener("keydown", (e) => {
     if (player.lives <= 0) return;
 
@@ -229,34 +346,37 @@ document.addEventListener("keydown", (e) => {
         return;
     }
 
-    // Hna fin kayn taghyir: Update state blast pending
     if (e.key === 'ArrowUp' || e.key === 'w') keys.up = true;
     if (e.key === 'ArrowDown' || e.key === 's') keys.down = true;
     if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
     if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
 });
 
-// Zedt had l Listener bach n3rfo imta l button thiyyd
 document.addEventListener("keyup", (e) => {
     if (e.key === 'ArrowUp' || e.key === 'w') keys.up = false;
     if (e.key === 'ArrowDown' || e.key === 's') keys.down = false;
     if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
     if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
 });
-function playerAnimation() {
+
+// ==== PLAYER ANIMATION ====
+function playerAnimation(pla) {
     if (playerMovment.delay >= 10) {
-        if (playerMovment.index >= animation.length) {
+        if (playerMovment.index >= pla.length) {
             playerMovment.index = 0;
         }
-        playerMovment.div.style.backgroundPositionX = `${animation[playerMovment.index]}px`;
+        playerMovment.div.style.backgroundPositionX = `${pla[playerMovment.index]}px`;
         playerMovment.index++;
         playerMovment.delay = 0;
     }
     playerMovment.delay++;
 }
+
 function movePlayer() {
     if (!playerMovment.isMoving) return;
-    playerAnimation();
+    
+    playerAnimation(animation);
+    
     if (player.top < playerMovment.top) {
         playerMovment.div.style.backgroundPositionY = `0px`;
         player.top += 2;
@@ -264,7 +384,6 @@ function movePlayer() {
         playerMovment.div.style.backgroundPositionY = `-120px`;
         player.top -= 2;
     } else if (player.left < playerMovment.left) {
-
         playerMovment.div.style.backgroundPositionY = `-80px`;
         player.left += 2;
     } else if (player.left > playerMovment.left) {
@@ -273,15 +392,15 @@ function movePlayer() {
     } else {
         playerMovment.isMoving = false;
     }
-    playerMovment.div.style.transform = `translateX(${player.left}px) translateY(${player.top}px)`
+    
+    playerMovment.div.style.transform = `translateX(${player.left}px) translateY(${player.top}px)`;
 }
 
 // ==== BOMBE ET EXPLOSION ====
 function plantBomb() {
     const bombX = player.x;
     const bombY = player.y;
-    const cell = divs[bombX][bombY]; // Bomb is a visual element
-
+    const cell = divs[bombX][bombY];
 
     const bombDiv = document.createElement('div');
     bombDiv.classList.add('bomb');
@@ -314,20 +433,17 @@ function createFire(x, y) {
     if (grid[x][y] === BREAKABLE) {
         cell.classList.remove("breakable");
         cell.classList.add("floor");
-        grid[x][y] = FLOOR
+        grid[x][y] = FLOOR;
     }
 
     // Ennemi touché
-    if (cell.classList.contains("enemy")) {
-        cell.classList.remove("enemy");
-        enemies.forEach(enemy => {
-            if (enemy.x === x && enemy.y === y && player.canHit) {
-                enemy.alive = false;
-            }
-        });
-        let scoreEl = document.getElementById("score");
-        scoreEl.textContent = parseInt(scoreEl.textContent) + 10; // +10 points
-    }
+    enemies.forEach(enemy => {
+        if (enemy.x === x && enemy.y === y && enemy.alive) {
+            enemy.alive = false;
+            let scoreEl = document.getElementById("score");
+            scoreEl.textContent = parseInt(scoreEl.textContent) + 10;
+        }
+    });
 
     // Crée le feu
     const fireDiv = document.createElement('div');
@@ -336,122 +452,56 @@ function createFire(x, y) {
 
     setTimeout(() => fireDiv.remove(), 500);
 
+    // Player hit by fire
     if (player.x === x && player.y === y) {
         loseLife();
-        grid[player.x][player.y] = FLOOR
-        grid[1][1] = PLAYER
-        player.x = 1
-        player.y = 1
+        grid[player.x][player.y] = FLOOR;
+        grid[1][1] = PLAYER;
+        player.x = 1;
+        player.y = 1;
     }
 }
 
-// ==== INITIALISATION ====
-map();
-function spawnMultipleEnemies(count) {
-    let spawned = 0;
-
-    while (spawned < count) {
-        let x = Math.floor(Math.random() * ROWS);
-        let y = Math.floor(Math.random() * COLS);
-    if (
-    isvalidPosition(x, y, true) && 
-    !divs[x][y].classList.contains("enemy")
-) {
-    spawnEnemy(x, y);
-    spawned++;
-}
-    }
-}
-function createEnemy(x, y) {
-    const div = document.createElement("div")
-    div.classList.add("enemy")
-    document.getElementById("Grid").appendChild(div)
-    div.style.transform = `translate(${y * 40}px, ${x * 40}px)`
-    return {
-        x,
-        y,
-        top: x * 40,
-        left: y * 40,
-        targetTop: x * 40,
-        targetLeft: y * 40,
-        isMoving: false,
-        div,
-        alive: true,
-    }
-}
-
-spawnMultipleEnemies(5)
-function updateEnemy(enemy) {
-    if (!enemy.alive) return
-
-    
-
-    if (!enemy.isMoving ) {
-        const directions = [
-            { dx: -1, dy: 0 },
-            { dx: 1, dy: 0 },
-            { dx: 0, dy: -1 },
-            { dx: 0, dy: 1 }
-        ]
-
-        let valid = directions.filter(d =>
-            isvalidPosition(enemy.x + d.dx, enemy.y + d.dy)
-        )
-
-        if (valid.length === 0) return
-
-        const dir = valid[Math.floor(Math.random() * valid.length)]
-
-        enemy.x += dir.dx
-        enemy.y += dir.dy
-
-        enemy.targetTop = enemy.x * 40
-        enemy.targetLeft = enemy.y * 40
-
-        enemy.isMoving = true
-    }
-
-    if (enemy.top < enemy.targetTop) enemy.top += 1
-    else if (enemy.top > enemy.targetTop) enemy.top -= 1
-    else if (enemy.left < enemy.targetLeft) enemy.left += 1
-    else if (enemy.left > enemy.targetLeft) enemy.left -= 1
-    else enemy.isMoving = false
-
-    enemy.div.style.transform =
-        `translate(${enemy.left}px, ${enemy.top}px)`
-
-    if (enemy.x === player.x && enemy.y === player.y && player.canHit) {
-        loseLife()
-    }
-}
-
+// ==== THROTTLE FUNCTION ====
 function trottel(fn, delay) {
     let timer;
     return function (playerX, playerY) {
         if (!timer) {
-            fn(playerX, playerY)
+            fn(playerX, playerY);
             timer = setTimeout(() => {
-                divs[playerX][playerY].classList.remove("bomb")
-                timer = null
-            }, delay)
-
+                divs[playerX][playerY].classList.remove("bomb");
+                timer = null;
+            }, delay);
         }
-    }
-
+    };
 }
-function gameloop() {
 
+// ==== CLEAN UP DEAD ENEMIES ====
+function cleanupEnemies() {
+    enemies = enemies.filter(enemy => enemy.alive);
+}
+
+// ==== GAME LOOP ====
+function gameloop() {
     if (!gamePaused) {
         handleinput();
         movePlayer();
+        
         if (!playerMovment.isMoving) {
             handleinput();
             if (playerMovment.isMoving) {
                 movePlayer();
             }
         }
+        
         enemies.forEach(enemy => updateEnemy(enemy));
+        cleanupEnemies();
     }
+    
     requestAnimationFrame(gameloop);
 }
-requestAnimationFrame(gameloop)
+
+// ==== INITIALISATION ====
+map();
+spawnMultipleEnemies(5);
+requestAnimationFrame(gameloop);
