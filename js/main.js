@@ -401,6 +401,7 @@ let bombSize = 1;
 // ==== BOMBE ET EXPLOSION ====
 function plantBomb() {
     bombPlaced = true;
+ bombSize = 1;
     setTimeout(() => { bombPlaced = false; }, 2000);
     const bombX = player.x;
     const bombY = player.y;
