@@ -41,7 +41,7 @@ let enemies = [];
 
 // animations things
 const animation = [2, -30, -65];
-const enemyanimation = [0, -40, -80]; 
+const enemyanimation = [0, -40, -80];
 
 function map() {
     const gameGrid = document.getElementById("Grid");
@@ -76,7 +76,7 @@ function isvalidPosition(x, y, forEnemy = false) {
         y < grid[x].length &&
         grid[x][y] !== WALL &&
         grid[x][y] !== BREAKABLE &&
-        (!forEnemy || Math.abs(x - player.x) > 2 || Math.abs(y - player.y) > 2) 
+        (!forEnemy || Math.abs(x - player.x) > 2 || Math.abs(y - player.y) > 2)
     );
 }
 
@@ -107,7 +107,7 @@ function createEnemy(x, y) {
     div.classList.add("enemy");
     document.getElementById("Grid").appendChild(div);
     div.style.transform = `translate(${y * 40}px, ${x * 40}px)`;
-    
+
     return {
         x,
         y,
@@ -136,7 +136,7 @@ function spawnMultipleEnemies(count) {
     while (spawned < count) {
         let x = Math.floor(Math.random() * ROWS);
         let y = Math.floor(Math.random() * COLS);
-        
+
         if (isvalidPosition(x, y, true) && !divs[x][y].classList.contains("enemy")) {
             spawnEnemy(x, y);
             spawned++;
@@ -150,7 +150,7 @@ function enemyAnimation(enemy) {
             enemy.animIndex = 0;
         }
         enemy.div.style.backgroundPositionX = `${enemyanimation[enemy.animIndex]}px`;
-        
+
         let posY = 0;
         switch (enemy.direction) {
             case 'down':
@@ -167,7 +167,7 @@ function enemyAnimation(enemy) {
                 break;
         }
         enemy.div.style.backgroundPositionY = `${posY}px`;
-        
+
         enemy.animIndex++;
         enemy.animDelay = 0;
     }
@@ -374,9 +374,9 @@ function playerAnimation(pla) {
 
 function movePlayer() {
     if (!playerMovment.isMoving) return;
-    
+
     playerAnimation(animation);
-    
+
     if (player.top < playerMovment.top) {
         playerMovment.div.style.backgroundPositionY = `0px`;
         player.top += 2;
@@ -392,12 +392,16 @@ function movePlayer() {
     } else {
         playerMovment.isMoving = false;
     }
-    
+
     playerMovment.div.style.transform = `translateX(${player.left}px) translateY(${player.top}px)`;
 }
 
+let bombPlaced = false;
+let bombSize = 1;
 // ==== BOMBE ET EXPLOSION ====
 function plantBomb() {
+    bombPlaced = true;
+    setTimeout(() => { bombPlaced = false; }, 2000);
     const bombX = player.x;
     const bombY = player.y;
     const cell = divs[bombX][bombY];
@@ -406,18 +410,18 @@ function plantBomb() {
     bombDiv.classList.add('bomb');
     cell.appendChild(bombDiv);
 
-    setTimeout(() => explodeBomb(bombX, bombY), 1750);
+    setTimeout(() => explodeBomb(bombX, bombY), 2000);
 }
 
 function explodeBomb(x, y) {
-    createFire(x, y);
-    createFire(x - 1, y);
-    createFire(x + 1, y);
-    createFire(x, y - 1);
-    createFire(x, y + 1);
+    createFire(x, y, '', true);
+    createFire(x - 1, y, 'left', false);
+    createFire(x + 1, y, 'right', false);
+    createFire(x, y - 1, 'up', false);
+    createFire(x, y + 1, 'down', false);
 }
 
-function createFire(x, y) {
+function createFire(x, y, direction, stop) {
     if (x < 0 || y < 0 || x >= ROWS || y >= COLS) return;
 
     const cell = divs[x][y];
@@ -427,7 +431,19 @@ function createFire(x, y) {
     if (bombDiv) bombDiv.remove();
 
     // Mur solide bloque explosion
-    if (cell.classList.contains(WALL)) return;
+    if (cell.classList.contains("wall")) {
+        return;
+    } else if (!stop) {
+        if (direction === 'right') {
+            createFire(x + 1, y, direction, true);
+        } else if (direction === 'left') {
+            createFire(x - 1, y, direction, true);
+        } else if (direction === 'up') {
+            createFire(x, y - 1, direction, true);
+        } else if (direction === 'down') {
+            createFire(x, y + 1, direction, true);
+        }
+    }
 
     // Mur cassable détruit
     if (grid[x][y] === BREAKABLE) {
@@ -480,24 +496,41 @@ function trottel(fn, delay) {
 function cleanupEnemies() {
     enemies = enemies.filter(enemy => enemy.alive);
 }
-
+let bombAnimation = false
 // ==== GAME LOOP ====
 function gameloop() {
+    const bomb = document.querySelector('.bomb');
+    if (bombPlaced) {
+        if (bombSize >= 2) {
+            bombAnimation = false
+        } else if (bombSize === 1) {
+            bombAnimation = true
+        }
+        if (bombAnimation) {
+            bombSize += 1 / 30
+        } else {
+            bombSize -= 1 / 30
+        }
+        if (bomb) {
+            bomb.style.scale = `${bombSize}`
+        }
+    }
+
     if (!gamePaused) {
         handleinput();
         movePlayer();
-        
+
         if (!playerMovment.isMoving) {
             handleinput();
             if (playerMovment.isMoving) {
                 movePlayer();
             }
         }
-        
+
         enemies.forEach(enemy => updateEnemy(enemy));
         cleanupEnemies();
     }
-    
+
     requestAnimationFrame(gameloop);
 }
 
