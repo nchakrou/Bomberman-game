@@ -503,7 +503,7 @@ function gameloop() {
     if (bombPlaced) {
         if (bombSize >= 2) {
             bombAnimation = false
-        } else if (bombSize === 1) {
+        } else if (bombSize <= 1) {
             bombAnimation = true
         }
         if (bombAnimation) {
