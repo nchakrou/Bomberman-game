@@ -1,7 +1,7 @@
 // length
-const ROWS = 13;
-const COLS = 15;
-
+const ROWS = 14;
+const COLS = 16;
+let itsOver = false
 
 const player = {
     x: 1,
@@ -234,14 +234,8 @@ function updateEnemy(enemy) {
     }
 }
 
-let timer = setInterval(() => {
-    const timeEl = document.getElementById("time");
-    timeEl.textContent = parseInt(timeEl.textContent) - 1;
-    if (timeEl.textContent <= 0) {
-        clearInterval(timer);
-        gameOver();
-    }
-}, 1000);
+
+
 
 function gameOver() {
     player.lives = 0;
@@ -249,40 +243,58 @@ function gameOver() {
     const blur = document.getElementsByTagName("main")[0];
     blur.style.filter = "blur(5px)";
     gameover.style.display = "block";
-
+    itsOver = true
     const restart = document.getElementById("restart");
     restart.addEventListener("click", () => location.reload());
+
 }
+const clock = {
+    div: document.getElementById("time"),
+    time: 200,
+    interval: null
+}
+clock.interval = setInterval(() => {
+    if (!gamePaused && !itsOver) {
+        clock.time--
+        clock.div.textContent = clock.time
+        if (clock.time <= 0) {
+            clearInterval(interval);
+            gameOver();
+        }
 
-function loseLife() {
-    if (!player.canHit) return;
-
-    player.lives--;
-    document.getElementById("lives").textContent = player.lives;
-
-    player.canHit = false;
-
-    playerMovment.div.classList.add("invincible");
-
-    if (player.lives <= 0) {
-        gameOver();
-        return;
     }
+}, 1000);
 
-    player.x = 1;
-    player.y = 1;
-    player.left = 40;
-    player.top = 40;
-    playerMovment.left = 40;
-    playerMovment.top = 40;
-    playerMovment.div.style.transform =
-        `translateX(${player.left}px) translateY(${player.top}px)`;
+    function loseLife() {
+        if (!player.canHit) return;
 
-    setTimeout(() => {
-        player.canHit = true;
-        playerMovment.div.classList.remove("invincible");
-    }, 3000);
-}
+        player.lives--;
+        document.getElementById("lives").textContent = player.lives;
+
+        player.canHit = false;
+
+        playerMovment.div.classList.add("invincible");
+
+        if (player.lives <= 0) {
+            gameOver();
+            return;
+        }
+        grid[player.x][player.y] = FLOOR;
+        grid[1][1] = PLAYER;
+        player.x = 1;
+        player.y = 1;
+        player.left = 40;
+        player.top = 40;
+        playerMovment.left = 40;
+        playerMovment.top = 40;
+        playerMovment.div.style.transform =
+            `translateX(${player.left}px) translateY(${player.top}px)`;
+
+        setTimeout(() => {
+            player.canHit = true;
+            playerMovment.div.classList.remove("invincible");
+        }, 3000);
+    }
 
 let gamePaused = false;
 
@@ -299,6 +311,8 @@ function pauseGame() {
             clearTimeout(bombTimerId);
             bombTimerId = null;
         }
+        document.getElementById("restart-pause").addEventListener("click",()=>location.reload())
+         document.getElementById("resume").addEventListener("click",()=>pauseGame())
     } else {
         const pauseOverlay = document.getElementById("pause-menu");
         const blur = document.getElementsByTagName("main")[0];
@@ -345,12 +359,9 @@ function handleinput() {
 }
 
 document.addEventListener("keydown", (e) => {
-    if (player.lives <= 0) return;
+    if (player.lives <= 0 || gamePaused || itsOver) return;
 
-    if (e.key === 'Escape') {
-        pauseGame();
-        return;
-    }
+
     if (e.key === ' ') {
         trothle(player.x, player.y);
         return;
@@ -363,6 +374,11 @@ document.addEventListener("keydown", (e) => {
 });
 
 document.addEventListener("keyup", (e) => {
+    if (itsOver)return;
+    if (e.key === 'Escape') {
+        pauseGame();
+        return;
+    }
     if (e.key === 'ArrowUp' || e.key === 'w') keys.up = false;
     if (e.key === 'ArrowDown' || e.key === 's') keys.down = false;
     if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
@@ -501,12 +517,10 @@ function createFire(x, y, direction, stop) {
     setTimeout(() => fireDiv.remove(), 500);
 
     // Player hit by fire
-    if (player.x === x && player.y === y) {
+    if (player.x === x && player.y === y && player.canHit) {
         loseLife();
-        grid[player.x][player.y] = FLOOR;
-        grid[1][1] = PLAYER;
-        player.x = 1;
-        player.y = 1;
+
+
     }
 }
 
@@ -531,8 +545,21 @@ function cleanupEnemies() {
 let bombAnimation = false
 // ==== GAME LOOP ====
 function gameloop() {
-    const bomb = document.querySelector('.bomb');
+
+
+    if (!gamePaused&&!itsOver) {
+        bombeAnimation()
+        handleinput();
+        movePlayer();
+        enemies.forEach(enemy => updateEnemy(enemy));
+        cleanupEnemies();
+    }
+
+    requestAnimationFrame(gameloop);
+}
+function bombeAnimation() {
     if (bombPlaced) {
+        const bomb = document.querySelector('.bomb');
         if (bombSize >= 2) {
             bombAnimation = false
         } else if (bombSize <= 1) {
@@ -547,26 +574,9 @@ function gameloop() {
             bomb.style.scale = `${bombSize}`
         }
     }
-
-    if (!gamePaused) {
-        handleinput();
-        movePlayer();
-
-        if (!playerMovment.isMoving) {
-            handleinput();
-            if (playerMovment.isMoving) {
-                movePlayer();
-            }
-        }
-
-        enemies.forEach(enemy => updateEnemy(enemy));
-        cleanupEnemies();
-    }
-
-    requestAnimationFrame(gameloop);
 }
-
 // ==== INITIALISATION ====
+
 map();
 spawnMultipleEnemies(5);
 requestAnimationFrame(gameloop);
