@@ -257,8 +257,8 @@ clock.interval = setInterval(() => {
     if (!gamePaused && !itsOver) {
         clock.time--
         clock.div.textContent = clock.time
-        if (clock.time <= 0) {
-            clearInterval(interval);
+        if (clock.time <= 0) {     
+            clearInterval(clock.interval);
             gameOver();
         }
 
@@ -479,7 +479,7 @@ function createFire(x, y, direction, stop) {
     if (bombDiv) bombDiv.remove();
 
     // Mur solide bloque explosion
-    if (cell.classList.contains("wall")) {
+    if (grid[x][y] === WALL) {
         return;
     } else if (!stop) {
         if (direction === 'right') {
