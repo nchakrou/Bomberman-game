@@ -293,12 +293,22 @@ function pauseGame() {
         blur.style.filter = "blur(5px)";
         pauseOverlay.style.display = "block";
         gamePaused = true;
+        if (bombPlaced && bombTimerId !== null) {
+            const elapsed = Date.now() - bombStartTime;
+            bombRemaining -= elapsed;
+            clearTimeout(bombTimerId);
+            bombTimerId = null;
+        }
     } else {
         const pauseOverlay = document.getElementById("pause-menu");
         const blur = document.getElementsByTagName("main")[0];
         blur.style.filter = "blur(0px)";
         pauseOverlay.style.display = "none";
         gamePaused = false;
+        if (bombPlaced && bombRemaining > 0) {
+            bombStartTime = Date.now();
+            bombTimerId = setTimeout(explodeBombWrapper, bombRemaining);
+        }
     }
 }
 
@@ -398,20 +408,41 @@ function movePlayer() {
 
 let bombPlaced = false;
 let bombSize = 1;
+let bombDuration = 2000;
+let bombRemaining = 0;
+let bombStartTime = 0;
+let bombTimerId = null;
+let bomvDiv = null
+let bombX = player.x;
+let bombY = player.y;
+
 // ==== BOMBE ET EXPLOSION ====
 function plantBomb() {
     bombPlaced = true;
- bombSize = 1;
-    setTimeout(() => { bombPlaced = false; }, 2000);
-    const bombX = player.x;
-    const bombY = player.y;
+    bombSize = 1;
+    bombStartTime = Date.now();
+    bombRemaining = bombDuration;
+    bombX = player.x;
+    bombY = player.y;
     const cell = divs[bombX][bombY];
-
-    const bombDiv = document.createElement('div');
+    bombDiv = document.createElement('div');
     bombDiv.classList.add('bomb');
     cell.appendChild(bombDiv);
 
-    setTimeout(() => explodeBomb(bombX, bombY), 2000);
+    bombTimerId = setTimeout(explodeBombWrapper, bombRemaining);
+}
+
+function explodeBombWrapper() {
+    explodeBomb(bombX, bombY);
+
+    if (bombDiv) {
+        bombDiv.remove();
+        bombDiv = null;
+    }
+
+    bombPlaced = false;
+    bombTimerId = null;
+    bombRemaining = 0;
 }
 
 function explodeBomb(x, y) {
