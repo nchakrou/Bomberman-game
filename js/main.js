@@ -1,21 +1,20 @@
-// ===== CONSTANTS =====
+// length
 const ROWS = 14;
 const COLS = 16;
-let itsOver = false;
+let itsOver = false
 
-// Types of squares
+// grid
+let divs = [];
+let grid = [];
+
+// types of squares
 const FLOOR = 0;
 const WALL = 1;
 const BREAKABLE = 2;
 const PLAYER = 3;
 
-// Grid
-let divs = [];
-let grid = [];
-
 let gamePaused = false;
 
-// ===== MAP GENERATION =====
 function map() {
     const gameGrid = document.getElementById("Grid");
     for (let i = 0; i < ROWS; i++) {
@@ -35,7 +34,23 @@ function map() {
         }
     }
 }
+function winGame() {
+    itsOver = true
+    gamePaused = true
 
+    const winScreen = document.querySelector(".you-won")
+    const blur = document.getElementsByTagName("main")[0]
+
+    blur.style.filter = "blur(5px)"
+    winScreen.style.display = "block"
+
+    document
+        .getElementById("restart-win")
+        .addEventListener("click", () => location.reload())
+}
+
+
+// checkpoint
 function isPlayerStart(i, j) {
     return (i === player.x && j === player.y);
 }
@@ -52,6 +67,7 @@ function isvalidPosition(x, y, forEnemy = false) {
     );
 }
 
+// randomly creation of wall and floor
 function generateCell(div, i, j) {
     if (i === 0 || i === ROWS - 1 || j === 0 || j === COLS - 1) {
         div.classList.add("wall");
@@ -72,48 +88,31 @@ function generateCell(div, i, j) {
     }
 }
 
-// ===== WIN / GAME OVER =====
-function winGame() {
-    itsOver = true;
-    gamePaused = true;
-
-    const winScreen = document.querySelector(".you-won");
-    const blur = document.getElementsByTagName("main")[0];
-
-    blur.style.filter = "blur(5px)";
-    winScreen.style.display = "block";
-
-    document
-        .getElementById("restart-win")
-        .addEventListener("click", () => location.reload());
-}
-
 function gameOver() {
     player.lives = 0;
     const gameover = document.querySelector(".game-over");
     const blur = document.getElementsByTagName("main")[0];
     blur.style.filter = "blur(5px)";
     gameover.style.display = "block";
-    itsOver = true;
+    itsOver = true
     const restart = document.getElementById("restart");
     restart.addEventListener("click", () => location.reload());
-}
 
-// ===== TIMER =====
+}
 const clock = {
     div: document.getElementById("time"),
     time: 200,
     interval: null
-};
-
+}
 clock.interval = setInterval(() => {
     if (!gamePaused && !itsOver) {
-        clock.time--;
-        clock.div.textContent = clock.time;
-        if (clock.time <= 0) {
+        clock.time--
+        clock.div.textContent = clock.time
+        if (clock.time <= 0) {     
             clearInterval(clock.interval);
             gameOver();
         }
+
     }
 }, 1000);
 
@@ -130,8 +129,8 @@ function pauseGame() {
             clearTimeout(bombTimerId);
             bombTimerId = null;
         }
-        document.getElementById("restart-pause").addEventListener("click", () => location.reload());
-        document.getElementById("resume").addEventListener("click", () => pauseGame());
+        document.getElementById("restart-pause").addEventListener("click",()=>location.reload())
+         document.getElementById("resume").addEventListener("click",()=>pauseGame())
     } else {
         const pauseOverlay = document.getElementById("pause-menu");
         const blur = document.getElementsByTagName("main")[0];
@@ -145,23 +144,21 @@ function pauseGame() {
     }
 }
 
-// ===== GAME LOOP =====
+// ==== GAME LOOP ====
 function gameloop() {
-    if (!gamePaused && !itsOver) {
-        bombeAnimation();
+
+
+    if (!gamePaused&&!itsOver) {
+        bombeAnimation()
         handleinput();
         movePlayer();
         enemies.forEach(enemy => updateEnemy(enemy));
         cleanupEnemies();
         if (enemies.length === 0) {
-            winGame();
-            return;
+            winGame()
+            return
         }
     }
+
     requestAnimationFrame(gameloop);
 }
-
- 
-    map();
-    spawnMultipleEnemies(5);
-    requestAnimationFrame(gameloop);

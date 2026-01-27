@@ -1,7 +1,7 @@
 let enemies = [];
+
 const enemyanimation = [0, -40, -80];
 
-// ===== ENEMY CONFIG =====
 function createEnemy(x, y) {
     const div = document.createElement("div");
     div.classList.add("enemy");
@@ -24,7 +24,6 @@ function createEnemy(x, y) {
     };
 }
 
-
 function spawnEnemy(x, y) {
     if (!isvalidPosition(x, y)) return;
     const enemy = createEnemy(x, y);
@@ -45,7 +44,6 @@ function spawnMultipleEnemies(count) {
     }
 }
 
-// ===== ENEMY ANIMATION (FOV) =====
 function enemyAnimation(enemy) {
     if (enemy.animDelay >= 8) {
         if (enemy.animIndex >= enemyanimation.length) {
@@ -55,10 +53,18 @@ function enemyAnimation(enemy) {
 
         let posY = 0;
         switch (enemy.direction) {
-            case 'down': posY = 0; break;
-            case 'left': posY = -40; break;
-            case 'right': posY = -80; break;
-            case 'up': posY = -120; break;
+            case 'down':
+                posY = 0;
+                break;
+            case 'left':
+                posY = -40;
+                break;
+            case 'right':
+                posY = -80;
+                break;
+            case 'up':
+                posY = -120;
+                break;
         }
         enemy.div.style.backgroundPositionY = `${posY}px`;
 
@@ -68,7 +74,7 @@ function enemyAnimation(enemy) {
     enemy.animDelay++;
 }
 
-// ===== ENEMY MVT =====
+// the new enemie
 function updateEnemy(enemy) {
     if (!enemy.alive) {
         enemy.div.remove();
@@ -128,7 +134,7 @@ function updateEnemy(enemy) {
     }
 }
 
-
+// ==== CLEAN UP DEAD ENEMIES ====
 function cleanupEnemies() {
     enemies = enemies.filter(enemy => enemy.alive);
 }
