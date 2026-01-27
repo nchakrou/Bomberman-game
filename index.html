@@ -15,15 +15,17 @@
                 <h1>Game Over</h1>
                 <button id="restart">Play Again</button>
             </div>
-            <div class="win">
-                <h1>You Win!</h1>
-                <button id="restart-win">Play Again</button>
+            <div class="you-won" style="display:none">
+                <h1>YOU WON 🎉</h1>
+                <button id="restart-win">Restart</button>
+
             </div>
-            <div class="game-over" id ="pause-menu">
+
+            <div class="game-over" id="pause-menu">
                 <h1>Game Paused</h1>
                 <div class="game-over-buttons">
-                <button id="resume">Resume</button>
-                <button id="restart-pause">Restart</button>
+                    <button id="resume">Resume</button>
+                    <button id="restart-pause">Restart</button>
                 </div>
             </div>
             <div class="logo">
@@ -43,7 +45,7 @@
         </header>
         <main>
             <div class="game-grid" id="Grid">
-                <div class = "player" id="player"></div>
+                <div class="player" id="player"></div>
             </div>
 
             <footer>

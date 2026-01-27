@@ -62,6 +62,21 @@ function map() {
         }
     }
 }
+function winGame() {
+    itsOver = true
+    gamePaused = true
+
+    const winScreen = document.querySelector(".you-won")
+    const blur = document.getElementsByTagName("main")[0]
+
+    blur.style.filter = "blur(5px)"
+    winScreen.style.display = "block"
+
+    document
+        .getElementById("restart-win")
+        .addEventListener("click", () => location.reload())
+}
+
 
 // checkpoint
 function isPlayerStart(i, j) {
@@ -553,6 +568,10 @@ function gameloop() {
         movePlayer();
         enemies.forEach(enemy => updateEnemy(enemy));
         cleanupEnemies();
+        if (enemies.length === 0) {
+            winGame()
+            return
+        }
     }
 
     requestAnimationFrame(gameloop);

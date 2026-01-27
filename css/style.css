@@ -224,6 +224,7 @@ header {
 
 
 /* Game Over - Simple & Clean */
+.you-won,
 .game-over {
     display: none;
     position: absolute;
@@ -240,7 +241,7 @@ header {
         0 0 50px rgba(255, 51, 102, 0.5),
         0 0 100px rgba(255, 51, 102, 0.2);
 }
-
+.you-won h1,
 .game-over h1 {
     font-family: 'Orbitron', sans-serif;
     font-size: 3rem;
@@ -257,47 +258,8 @@ header {
     justify-content: center;
     gap: 20px;
 }
-.win{
-    display: none;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 100;
-    background: rgba(0, 0, 0, 0.9);
-    padding: 50px 70px;
-    border-radius: 20px;
-    text-align: center;
-    border: 2px solid var(--success-green);
-    box-shadow:
-        0 0 50px rgba(46, 213, 115, 0.5),
-        0 0 100px rgba(46, 213, 115, 0.2);
-}
-.win h1 {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 3rem;
-    color: var(--success-green);
-    margin-bottom: 30px;
-    text-transform: uppercase;
-    letter-spacing: 6px;
-    text-shadow:
-        0 0 20px var(--success-green),
-        0 0 40px rgba(46, 213, 115, 0.5);
-}
-.win button {
-    background: linear-gradient(135deg, var(--success-green), #28a745);
-    color: var(--text-white);
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    padding: 16px 40px;
-    border: none;
-    border-radius: 10px;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 30px rgba(46, 213, 115, 0.4);
-}
+
+.you-won button,
 .game-over button {
     background: linear-gradient(135deg, var(--accent-cyan), #0099cc);
     color: var(--text-white);
@@ -313,7 +275,7 @@ header {
     transition: all 0.3s ease;
     box-shadow: 0 8px 30px rgba(0, 212, 255, 0.4);
 }
-
+.you-won button:hover,
 .game-over button:hover {
     transform: translateY(-3px);
     box-shadow: 0 12px 40px rgba(0, 212, 255, 0.6);
